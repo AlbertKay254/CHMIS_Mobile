@@ -173,7 +173,7 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.chat_bubble_outline),
             label: const Text("Chat with Assistant"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(238, 255, 249, 130),
+              backgroundColor: const Color.fromARGB(237, 255, 249, 139),
               foregroundColor: const Color.fromARGB(255, 55, 55, 55),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

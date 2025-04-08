@@ -26,7 +26,7 @@ class _ChatPageState extends State<ChatPage> {
       author: const types.User(id: 'bot-456'),
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: const Uuid().v4(),
-      text: 'Welcome to CHMIS Chat! How can I assist you today?',
+      text: 'Welcome to CHMIS Chat! How may I assist you today?',
     );
 
     setState(() {
