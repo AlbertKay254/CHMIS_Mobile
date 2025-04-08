@@ -69,6 +69,10 @@ class _ChatPageState extends State<ChatPage> {
         messages: _messages,
         onSendPressed: _handleSendPressed,
         user: _user,
+        theme: const DefaultChatTheme(
+          inputBackgroundColor: Color.fromARGB(255, 98, 220, 229),
+          primaryColor: Color.fromARGB(255, 41, 41, 41),
+        ),
       ),
     );
   }

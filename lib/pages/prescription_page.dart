@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 
 class PrescriptionPage extends StatelessWidget {
@@ -31,7 +33,10 @@ class PrescriptionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Prescriptions")),
+      appBar: AppBar(
+        title: const Text("Prescriptions"),
+        backgroundColor: const Color.fromARGB(255, 99, 182, 188),
+      ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Center(

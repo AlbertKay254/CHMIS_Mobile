@@ -34,7 +34,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Appointments")),
+      appBar: AppBar(
+        title: const Text("Appointments"),
+        backgroundColor: const Color.fromARGB(255, 99, 182, 188),
+      ),
       body: Column(
         children: [
           TableCalendar(

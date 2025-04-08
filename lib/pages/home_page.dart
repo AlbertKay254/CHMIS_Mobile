@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:medical_app/pages/appointments_page.dart';
 import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/diagnosis_page.dart';
+import 'package:medical_app/pages/loading_screen..dart';
 import 'package:medical_app/pages/prescription_page.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/util/doctor_card.dart';
@@ -17,8 +18,26 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _simulateLoading();
+  }
+
+  Future<void> _simulateLoading() async {
+    await Future.delayed(const Duration(seconds: 2)); // Simulate data loading
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const LoadingScreen(message: "Preparing your dashboard...");
+    }
     return Scaffold(
       backgroundColor: Colors.grey[300],
       body: SafeArea(
@@ -74,10 +93,10 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height:20),
             //--------chat button -------------------------------------------------------------
             chatbutton(context),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
           ],
         ),
-        ) //main body container
+      ) //main body container
 
           
       ),
@@ -171,7 +190,7 @@ class _HomePageState extends State<HomePage> {
               );
             },
             icon: const Icon(Icons.chat_bubble_outline),
-            label: const Text("Chat with Assistant"),
+            label: const Text("Chat"),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(237, 255, 249, 139),
               foregroundColor: const Color.fromARGB(255, 55, 55, 55),

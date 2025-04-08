@@ -37,7 +37,10 @@ class DiagnosisPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Diagnosis")),
+      appBar: AppBar(
+        title: const Text("Diagnosis"),
+        backgroundColor: const Color.fromARGB(255, 99, 182, 188),
+      ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Center(

@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:medical_app/pages/home_page.dart';
 
@@ -13,7 +15,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: const HomePage(),
-      //theme: ThemeData(primarySwatch: Colors.red),
     );
   }
 }
