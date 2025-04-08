@@ -1,5 +1,8 @@
+// ignore_for_file: sized_box_for_whitespace
+
 import 'package:flutter/material.dart';
 import 'package:medical_app/pages/appointments_page.dart';
+import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/diagnosis_page.dart';
 import 'package:medical_app/pages/prescription_page.dart';
 import 'package:medical_app/util/category_card.dart';
@@ -35,77 +38,9 @@ class _HomePageState extends State<HomePage> {
             categorycard(),
             const SizedBox(height:25),
             //--------info panel -----------------------------------------------------------------
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  color: Colors.blue[50],
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 5,
-                      blurRadius: 7,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Doctor: Dr. Jane Doe',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Next Appointment: 2025-04-10',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Health Status: Good',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Notes:',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        'Continue with the prescribed medication.',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            quickinfo(),
             //-------doctor list------------------------------------------------------------------
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Doctors List',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18
-                    ),
-                    ),
-                  Text(
-                    'See all',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600]
-                    ),
-                  )
-              ],),
-            ),
+            doctorslist(),
             const SizedBox(height: 20,),
             Container(
               height: 220,
@@ -135,8 +70,11 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-            )         
-
+            ),         
+            const SizedBox(height:20),
+            //--------chat button -------------------------------------------------------------
+            chatbutton(context),
+            const SizedBox(height: 30),
           ],
         ),
         ) //main body container
@@ -144,6 +82,107 @@ class _HomePageState extends State<HomePage> {
           
       ),
     );
+  }
+
+  Padding doctorslist() {
+    return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Doctors List',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18
+                  ),
+                  ),
+                Text(
+                  'See all',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600]
+                  ),
+                )
+            ],),
+          );
+  }
+
+  Padding quickinfo() {
+    return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                color: Colors.blue[50],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Doctor: Dr. Jane Doe',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Next Appointment: 2025-04-10',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Health Status: Good',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Notes:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Continue with the prescribed medication.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+  }
+
+  Padding chatbutton(BuildContext context) {
+    return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChatPage()),
+              );
+            },
+            icon: const Icon(Icons.chat_bubble_outline),
+            label: const Text("Chat with Assistant"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(238, 255, 249, 130),
+              foregroundColor: const Color.fromARGB(255, 55, 55, 55),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
   }
 
   Container categorycard() {
