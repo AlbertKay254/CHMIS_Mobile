@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:medical_app/pages/appointments_page.dart';
 import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/diagnosis_page.dart';
+import 'package:medical_app/pages/doctor/doctor_home.dart';
 import 'package:medical_app/pages/loading_screen..dart';
 import 'package:medical_app/pages/prescription_page.dart';
 import 'package:medical_app/util/category_card.dart';
@@ -343,49 +344,38 @@ class _HomePageState extends State<HomePage> {
           );
   }
 
-  Padding appbar() {
-    return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-               //Name -->
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Hello, ",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  Text(
-                      "George Maina",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: Colors.blue[900],
-                        ),
-                  )
-
-                ],
-              ),
-
-              //profile picture -->
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: const Color.fromARGB(255, 79, 217, 230),
-                ),
-                child: const Icon(
-                  Icons.person,
-                  color: Color.fromARGB(255, 0, 0, 0),
-                  )
-                ),
-            ], 
+Padding appbar() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 30.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Hello,", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text("George Maina", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
+          ],
+        ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const DoctorHomePage()),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: const Color.fromARGB(255, 79, 217, 230),
             ),
-          );
-  }
+            child: const Icon(Icons.person, color: Colors.black),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 }

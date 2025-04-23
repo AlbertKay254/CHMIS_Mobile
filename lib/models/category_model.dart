@@ -1,4 +1,4 @@
-import 'package:medical_app/pages/doctor/hr_page.dart';
+import 'package:medical_app/pages/doctor/hrpage.dart';
 import 'package:medical_app/pages/doctor/inpatient_page.dart';
 import 'package:medical_app/pages/doctor/outpatient_patient.dart';
 import 'package:medical_app/pages/doctor/pharmacy_page.dart';

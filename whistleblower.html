@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Whistleblowing Form</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .form-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: 24px;
+      color: #333;
+    }
+
+    p.description {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    textarea {
+      height: 120px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background-color: #007bff;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Whistleblowing Form</h2>
+    <p class="description">
+      Use this form to anonymously report any unethical or suspicious activities within the organization. Your identity will be kept confidential.
+    </p>
+
+    <form action="https://formsubmit.co/anonymous@chak.or.ke" method="POST">
+      <!-- Optional: Prevent captcha, redirect, etc. -->
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_template" value="box">
+      <input type="hidden" name="_subject" value="New Whistleblowing Report">
+      <input type="hidden" name="_next" value="https://chak.or.ke/thank-you.html">
+
+      <label for="name">Your Name (Optional)</label>
+      <input type="text" id="name" name="name" placeholder="Leave blank to stay anonymous">
+
+      <label for="email">Your Email (Optional)</label>
+      <input type="email" id="email" name="email" placeholder="Leave blank if you want to stay anonymous">
+
+      <label for="message">Report Details *</label>
+      <textarea id="message" name="message" required placeholder="Describe the issue or concern in detail..."></textarea>
+
+      <button type="submit">Submit Report</button>
+    </form>
+  </div>
+
+</body>
+</html>

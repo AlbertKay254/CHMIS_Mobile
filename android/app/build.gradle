@@ -9,16 +9,16 @@ android {
     namespace = "com.example.medical_app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
-
+ 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-
+ 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
     }
-
+ 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.medical_app"
@@ -29,7 +29,7 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
-
+ 
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
@@ -37,7 +37,26 @@ android {
             signingConfig = signingConfigs.debug
         }
     }
+
+//     buildscript {
+//     repositories {
+//         google()
+//         mavenCentral()
+//     }
+//     dependencies {
+//         classpath 'com.android.tools.build:gradle:8.1.0'
+//     }
+// }
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
+
+}
+ 
 
 flutter {
     source = "../.."
