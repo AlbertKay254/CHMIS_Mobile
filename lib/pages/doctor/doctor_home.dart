@@ -72,7 +72,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text("Welcome,", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text("Dr. George Maina", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
+            Text("Dr. Jose Kupeka", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
           ],
         ),
         GestureDetector(
