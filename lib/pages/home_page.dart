@@ -1,6 +1,9 @@
 // ignore_for_file: sized_box_for_whitespace
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:medical_app/pages/appointments_page.dart';
 import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/diagnosis_page.dart';
@@ -13,15 +16,17 @@ import 'package:medical_app/util/doctor_card.dart';
 import 'package:medical_app/pages/billing_page.dart';
 
 class HomePage extends StatefulWidget {
- 
-
 
   //db fetches
   final String userName;
+  final String patientID;
 
-  const HomePage({super.key, required this.userName});
+  const HomePage({
+    super.key, 
+    required this.userName,
+    required this.patientID,
+  });
 
-  //const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -29,19 +34,42 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
+  Map<String, dynamic>? vitals;
+
 
   @override
   void initState() {
     super.initState();
-    _simulateLoading();
+    _loadData();
   }
 
-  Future<void> _simulateLoading() async {
-    await Future.delayed(const Duration(seconds: 2)); // Simulate data loading
+  Future<void> _loadData() async {
+    try {
+      final fetchedVitals = await fetchVitals(widget.patientID);
+      setState(() {
+        vitals = fetchedVitals;
+      });
+    } catch (e) {
+      print("Vitals fetch error: $e");
+    }
+
+    await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _isLoading = false;
     });
   }
+
+  Future<Map<String, dynamic>> fetchVitals(String patientID) async {
+    final url = Uri.parse('http://192.168.1.10:3030/api/vitals/$patientID');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load vitals');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -137,61 +165,69 @@ class _HomePageState extends State<HomePage> {
           );
   }
 
-  Padding quickinfo() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SizedBox(
-        width: 320, 
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
-            color: Colors.blue[50],
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: Offset(0, 3),
-              ),
-            ],
-          ),
-          child: const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Encounter Number:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 62, 75)),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Hypertension Status: ',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 62, 75)),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Diabetic Status: ',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 62, 75)),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Notes:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 62, 75)),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Next Appointment: 2025-04-10',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 62, 75)),
-                ),
-                SizedBox(height: 5),
-              ],
+ Padding quickinfo() {
+  return Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: SizedBox(
+      width: 320,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          color: Colors.blue[50],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 5,
+              blurRadius: 7,
+              offset: Offset(0, 3),
             ),
-          ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: vitals == null
+              ? const Text("No medical data available.")
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    buildInfoText("Encounter Number: ", vitals!['EncounterNo']),
+                    buildInfoText("Hypertension Status: ", vitals!['hypertensionStatus']),
+                    buildInfoText("Diabetic Status: ", vitals!['diabeticStatus']),
+                    buildInfoText("Notes: ", vitals!['notes']),
+                    buildInfoText("Next Appointment: ", vitals!['nextAppointment'] ?? 'N/A'),
+                  ],
+                ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+Widget buildInfoText(String label, dynamic value) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 10.0),
+    child: RichText(
+      text: TextSpan(
+        text: label,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Color.fromARGB(255, 0, 62, 75),
+        ),
+        children: [
+          TextSpan(
+            text: value?.toString() ?? 'N/A',
+            style: const TextStyle(
+              fontWeight: FontWeight.normal,
+              color: Color.fromARGB(255, 0, 144, 141),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 
 
   Padding chatbutton(BuildContext context) {
@@ -364,11 +400,14 @@ Padding appbar() {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Hello,", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text("Hello,", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             Text(widget.userName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
+            SizedBox(width: 15),
+            const Text("PID,", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(widget.patientID, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
           ],
         ),
         Row(

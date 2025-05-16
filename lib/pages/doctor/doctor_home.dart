@@ -82,7 +82,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const HomePage(userName: '',)),
+                  MaterialPageRoute(builder: (_) => const HomePage(userName: '', patientID: '',)), //-----------**********//
                 );
               },
               child: Container(
