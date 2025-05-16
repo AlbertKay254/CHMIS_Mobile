@@ -4,6 +4,7 @@ import 'package:medical_app/pages/doctor/inpatient_page.dart';
 import 'package:medical_app/pages/doctor/pharmacy_page.dart';
 import 'package:medical_app/pages/doctor/hrpage.dart';
 import 'package:medical_app/pages/home_page.dart';
+import 'package:medical_app/pages/login_page.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/pages/chat_page.dart';
 
@@ -75,22 +76,44 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             Text("Dr. Jose Kupeka", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
           ],
         ),
-        GestureDetector(
-          onTap: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const HomePage()),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: const Color.fromARGB(255, 79, 217, 230),
+        Row(
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomePage(userName: '',)),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: const Color.fromARGB(255, 79, 217, 230),
+                ),
+                child: const Icon(Icons.switch_account_sharp, color: Color.fromARGB(255, 2, 70, 62)),
+              ),
             ),
-            child: const Icon(Icons.person, color: Colors.black),
-          ),
+            SizedBox(width: 10),
+             GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.redAccent,
+                        ),
+                        child: const Icon(Icons.logout, color: Colors.white),
+                      ),
+                    ),
+          ],
         ),
+        
       ],
     ),
   );
