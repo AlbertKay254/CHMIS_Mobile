@@ -19,8 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   void _login() async {
   if (_formKey.currentState!.validate()) {
     final url = Uri.parse('http://192.168.1.10:3030/api/login');
-    //final url = Uri.parse('http://192.168.1.182:3010/api/login');
-    //final url = Uri.parse('http://10.0.2.2:3030/api/login');
+    
 
     final response = await http.post(
       url,
@@ -41,6 +40,7 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(
             builder: (context) => HomePage(
               userName: jsonResponse['user']['name'],
+              patientID:  jsonResponse['user']['patientID'],
            ),
           ),
       );
