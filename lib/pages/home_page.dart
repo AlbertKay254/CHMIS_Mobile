@@ -6,13 +6,22 @@ import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/diagnosis_page.dart';
 import 'package:medical_app/pages/doctor/doctor_home.dart';
 import 'package:medical_app/pages/loading_screen..dart';
+import 'package:medical_app/pages/login_page.dart';
 import 'package:medical_app/pages/prescription_page.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/util/doctor_card.dart';
 import 'package:medical_app/pages/billing_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+ 
+
+
+  //db fetches
+  final String userName;
+
+  const HomePage({super.key, required this.userName});
+
+  //const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -130,55 +139,60 @@ class _HomePageState extends State<HomePage> {
 
   Padding quickinfo() {
     return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
-                color: Colors.blue[50],
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 5,
-                    blurRadius: 7,
-                    offset: Offset(0, 3),
-                  ),
-                ],
+      padding: const EdgeInsets.all(16.0),
+      child: SizedBox(
+        width: 320, 
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.0),
+            color: Colors.blue[50],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: Offset(0, 3),
               ),
-              child: const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Doctor: Dr. Jane Doe',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Next Appointment: 2025-04-10',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Health Status: Good',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Notes:',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      'Continue with the prescribed medication.',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ],
+            ],
+          ),
+          child: const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Encounter Number:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 62, 75)),
                 ),
-              ),
+                SizedBox(height: 10),
+                Text(
+                  'Hypertension Status: ',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 62, 75)),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Diabetic Status: ',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 62, 75)),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Notes:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 62, 75)),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Next Appointment: 2025-04-10',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 62, 75)),
+                ),
+                SizedBox(height: 5),
+              ],
             ),
-          );
+          ),
+        ),
+      ),
+    );
   }
+
 
   Padding chatbutton(BuildContext context) {
     return Padding(
@@ -354,24 +368,45 @@ Padding appbar() {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text("Hello,", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text("George Maina", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
+            Text(widget.userName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
           ],
         ),
-        GestureDetector(
-          onTap: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const DoctorHomePage()),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: const Color.fromARGB(255, 79, 217, 230),
+        Row(
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DoctorHomePage()),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: const Color.fromARGB(255, 79, 217, 230),
+                ),
+                child: const Icon(Icons.switch_account_sharp, color: Color.fromARGB(255, 2, 70, 62)),
+              ),
             ),
-            child: const Icon(Icons.person, color: Colors.black),
-          ),
+            SizedBox(width: 10),
+            GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginPage()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.redAccent,
+                    ),
+                    child: const Icon(Icons.logout, color: Colors.white),
+                  ),
+                ),
+          ],
         ),
       ],
     ),
