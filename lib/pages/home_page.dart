@@ -1,7 +1,5 @@
 // ignore_for_file: sized_box_for_whitespace
-
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:medical_app/pages/appointments_page.dart';
