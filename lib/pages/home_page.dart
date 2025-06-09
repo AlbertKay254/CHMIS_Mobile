@@ -25,7 +25,6 @@ class HomePage extends StatefulWidget {
     required this.patientID,
   });
 
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -48,7 +47,9 @@ class _HomePageState extends State<HomePage> {
         vitals = fetchedVitals;
       });
     } catch (e) {
-      print("Vitals fetch error: $e");
+      setState(() {
+        vitals = null; // Set to null if there's an error
+      });
     }
 
     await Future.delayed(const Duration(seconds: 2));
@@ -67,7 +68,6 @@ class _HomePageState extends State<HomePage> {
       throw Exception('Failed to load vitals');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
