@@ -41,6 +41,7 @@ class _LoginPageState extends State<LoginPage> {
             builder: (context) => HomePage(
               userName: jsonResponse['user']['name'],
               patientID:  jsonResponse['user']['patientID'],
+              //encounterNr: null,---------------------------------
            ),
           ),
       );

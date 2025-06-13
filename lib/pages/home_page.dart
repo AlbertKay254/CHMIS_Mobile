@@ -18,11 +18,13 @@ class HomePage extends StatefulWidget {
   //db fetches
   final String userName;
   final String patientID;
+  //final String EncounterNr;
 
   const HomePage({
     super.key, 
     required this.userName,
     required this.patientID,
+    //required this.encounterNr,
   });
 
   @override
@@ -263,7 +265,9 @@ Widget buildInfoText(String label, dynamic value) {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) =>  DiagnosisPage()),
+                MaterialPageRoute(
+                  builder: (context) => DiagnosisPage(patientID: widget.patientID),
+                  ),
               );
             },
             child: CategoryCard(
