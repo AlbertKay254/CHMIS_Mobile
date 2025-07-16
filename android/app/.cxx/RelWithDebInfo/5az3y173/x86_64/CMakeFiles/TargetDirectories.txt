@@ -1,0 +1,2 @@
+C:/Users/Albert/StudioProjects/medical_app/android/app/.cxx/RelWithDebInfo/5az3y173/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/Albert/StudioProjects/medical_app/android/app/.cxx/RelWithDebInfo/5az3y173/x86_64/CMakeFiles/rebuild_cache.dir

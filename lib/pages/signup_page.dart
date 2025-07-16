@@ -19,30 +19,29 @@ class _SignupPageState extends State<SignupPage> {
  void _signUp() async {
   if (_formKey.currentState!.validate()) {
     final url = Uri.parse('http://192.168.1.10:3030/api/signup');
-    //final url = Uri.parse('http://192.168.1.182:3010/api/signup');
-    //final url = Uri.parse('http://10.0.2.2:3030/api/signup');
 
-    final response = await http.post(
+      final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
-        'name': _nameController.text,
-        'email': _emailController.text,
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
         'password': _passwordController.text,
-        'patientID': _pidController.text, 
+        'patientID': _pidController.text.trim(), 
       }),
     );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created!')),
-      );
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Signup failed: ${response.body}')),
-      );
-    }
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account created!')),
+          );
+          await Future.delayed(const Duration(seconds: 1));
+          if (mounted) Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Signup failed: ${response.body}')),
+        );
+      }
   }
 }
 
@@ -123,7 +122,7 @@ class _SignupPageState extends State<SignupPage> {
                 ),
                   validator: (value) =>
                     value!.isEmpty ? 'Please enter your PID' : null,
-                obscureText: true,
+                
               ),
               const SizedBox(height: 30),
 
