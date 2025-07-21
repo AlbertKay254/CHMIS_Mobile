@@ -61,7 +61,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<Map<String, dynamic>> fetchVitals(String patientID) async {
-    final url = Uri.parse('http://192.168.1.10:3030/api/vitals/$patientID');
+    //final url = Uri.parse('http://192.168.1.10:3030/api/vitals/$patientID')
+    final url = Uri.parse('http://197.232.14.151:3030/api/vitals/$patientID');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {

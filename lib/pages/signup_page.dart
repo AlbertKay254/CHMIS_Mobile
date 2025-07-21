@@ -18,7 +18,8 @@ class _SignupPageState extends State<SignupPage> {
 
  void _signUp() async {
   if (_formKey.currentState!.validate()) {
-    final url = Uri.parse('http://192.168.1.10:3030/api/signup');
+    //final url = Uri.parse('http://192.168.1.10:3030/api/signup');
+    final url = Uri.parse('http://197.232.14.151:3030/api/signup');
 
       final response = await http.post(
       url,
