@@ -1,7 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:http/http.dart' as http;
 
 class AppointmentsPage extends StatefulWidget {
+  final String patientID;
+
+  const AppointmentsPage({super.key, required this.patientID});
+
   @override
   _AppointmentsPageState createState() => _AppointmentsPageState();
 }
@@ -10,7 +16,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
   late CalendarFormat _calendarFormat;
   late DateTime _focusedDay;
   late DateTime _selectedDay;
-  Map<DateTime, List<String>> _appointments = {};
+  Map<DateTime, List<Map<String, String>>> _appointments = {};
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -18,21 +25,67 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     _calendarFormat = CalendarFormat.month;
     _focusedDay = DateTime.now();
     _selectedDay = _focusedDay;
-
-    // Sample appointment data
-    _appointments = {
-      DateTime.utc(2025, 3, 10): ['Doctor Consultation - 10:00 AM'],
-      DateTime.utc(2025, 3, 15): ['Dental Checkup - 2:00 PM'],
-      DateTime.utc(2025, 3, 20): ['Eye Specialist - 11:30 AM'],
-    };
+    _fetchAppointments();
   }
 
-  List<String> _getAppointmentsForDay(DateTime day) {
+  Future<void> _fetchAppointments() async {
+    final url = Uri.parse("http://197.232.14.151:3030/api/appointments/${widget.patientID}");
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        print("✅ API Response: $data"); // DEBUG
+
+        Map<DateTime, List<Map<String, String>>> fetchedAppointments = {};
+
+        for (var appt in data) {
+          // Convert to UTC to match TableCalendar's default
+          DateTime dateKey = DateTime.utc(
+            DateTime.parse(appt['date']).year,
+            DateTime.parse(appt['date']).month,
+            DateTime.parse(appt['date']).day,
+          );
+
+          Map<String, String> details = {
+            "purpose": appt['purpose'] ?? '',
+            "time": appt['time'] ?? '',
+            "urgency": appt['urgency'] ?? '',
+          };
+
+          fetchedAppointments.putIfAbsent(dateKey, () => []);
+          fetchedAppointments[dateKey]!.add(details);
+        }
+
+        print("📅 Parsed Appointments: $fetchedAppointments"); // DEBUG
+
+        setState(() {
+          _appointments = fetchedAppointments;
+          _isLoading = false;
+        });
+      } else {
+        throw Exception("Failed to load appointments");
+      }
+    } catch (e) {
+      print("❌ Error fetching appointments: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<Map<String, String>> _getAppointmentsForDay(DateTime day) {
     return _appointments[DateTime.utc(day.year, day.month, day.day)] ?? [];
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Appointments"),
@@ -52,7 +105,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 _focusedDay = focusedDay;
               });
             },
-            eventLoader: _getAppointmentsForDay,
+            eventLoader: (day) => _getAppointmentsForDay(day),
             calendarStyle: CalendarStyle(
               todayDecoration: BoxDecoration(
                 color: Colors.blue.withOpacity(0.5),
@@ -62,20 +115,28 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 color: Colors.blue,
                 shape: BoxShape.circle,
               ),
+              markerDecoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Expanded(
             child: _getAppointmentsForDay(_selectedDay).isEmpty
-                ? Center(child: Text("No Appointments"))
+                ? const Center(child: Text("No Appointments"))
                 : ListView.builder(
                     itemCount: _getAppointmentsForDay(_selectedDay).length,
                     itemBuilder: (context, index) {
+                      final appt = _getAppointmentsForDay(_selectedDay)[index];
                       return Card(
-                        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                         child: ListTile(
-                          leading: Icon(Icons.calendar_today, color: Colors.blue),
-                          title: Text(_getAppointmentsForDay(_selectedDay)[index]),
+                          leading: const Icon(Icons.calendar_today, color: Colors.blue),
+                          title: Text(appt["purpose"] ?? ""),
+                          subtitle: Text(
+                            "Time: ${appt["time"] ?? ""}\nUrgency: ${appt["urgency"] ?? ""}",
+                          ),
                         ),
                       );
                     },
@@ -85,4 +146,4 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
       ),
     );
   }
-} 
+}

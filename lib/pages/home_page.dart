@@ -292,7 +292,9 @@ Widget buildInfoText(String label, dynamic value) {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) =>  AppointmentsPage()),
+                MaterialPageRoute(
+                  builder: (context) =>  AppointmentsPage(patientID: widget.patientID),
+                  ),
               );
             },
             child:  CategoryCard(
