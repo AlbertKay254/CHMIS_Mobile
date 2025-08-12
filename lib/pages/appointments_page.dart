@@ -35,7 +35,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        print("✅ API Response: $data"); // DEBUG
+        print("✅ API Response: $data");
 
         Map<DateTime, List<Map<String, String>>> fetchedAppointments = {};
 
@@ -57,7 +57,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
           fetchedAppointments[dateKey]!.add(details);
         }
 
-        print("📅 Parsed Appointments: $fetchedAppointments"); // DEBUG
+        print("📅 Parsed Appointments: $fetchedAppointments"); 
 
         setState(() {
           _appointments = fetchedAppointments;
@@ -108,11 +108,11 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
             eventLoader: (day) => _getAppointmentsForDay(day),
             calendarStyle: CalendarStyle(
               todayDecoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.5),
+                color: Colors.blue,
                 shape: BoxShape.circle,
               ),
               selectedDecoration: BoxDecoration(
-                color: Colors.blue,
+                color: const Color.fromARGB(255, 8, 217, 207),
                 shape: BoxShape.circle,
               ),
               markerDecoration: BoxDecoration(
@@ -132,7 +132,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                       return Card(
                         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                         child: ListTile(
-                          leading: const Icon(Icons.calendar_today, color: Colors.blue),
+                          leading: const Icon(Icons.calendar_today, color: const Color.fromARGB(255, 8, 217, 207),),
                           title: Text(appt["purpose"] ?? ""),
                           subtitle: Text(
                             "Time: ${appt["time"] ?? ""}\nUrgency: ${appt["urgency"] ?? ""}",

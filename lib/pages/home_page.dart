@@ -280,7 +280,9 @@ Widget buildInfoText(String label, dynamic value) {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) =>  PrescriptionPage()),
+                MaterialPageRoute(
+                  builder: (context) =>  PrescriptionPage(patientID: widget.patientID)
+                  ),
               );
             },
             child: CategoryCard(
