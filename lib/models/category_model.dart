@@ -56,6 +56,8 @@ class CategoryModel {
       ),
     );
 
+    
+
     // To enable the Appointments page, just uncomment and ensure it's imported correctly.
     // categories.add(
     //   CategoryModel(

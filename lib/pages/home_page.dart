@@ -12,6 +12,7 @@ import 'package:medical_app/pages/prescription_page.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/util/doctor_card.dart';
 import 'package:medical_app/pages/billing_page.dart';
+import 'package:medical_app/pages/labresults_page.dart';
 
 class HomePage extends StatefulWidget {
 
@@ -261,7 +262,7 @@ Widget buildInfoText(String label, dynamic value) {
       height: 100,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        children: [
+        children: <Widget>[
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -304,6 +305,20 @@ Widget buildInfoText(String label, dynamic value) {
               iconImagePath: 'lib/icons/schedule.png',
             ),
           ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LabResultsPage(patientID: widget.patientID),
+                  ),
+                );
+              },
+              child: CategoryCard(
+                categoryName: 'Lab Results',
+                iconImagePath: 'lib/icons/labresults.png',
+              ),
+            ),
            GestureDetector(
             onTap: () {
               Navigator.push(
@@ -316,7 +331,9 @@ Widget buildInfoText(String label, dynamic value) {
               iconImagePath: 'lib/icons/bills.png',
             ),
           ),
+          
         ],
+        
       ),
     );
   }
