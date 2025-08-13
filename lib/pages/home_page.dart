@@ -13,19 +13,18 @@ import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/util/doctor_card.dart';
 import 'package:medical_app/pages/billing_page.dart';
 import 'package:medical_app/pages/labresults_page.dart';
+import 'package:medical_app/pages/option_page.dart';
+import 'package:medical_app/pages/telemedicine_page.dart';
 
 class HomePage extends StatefulWidget {
-
-  //db fetches
+  // db fetches
   final String userName;
   final String patientID;
-  //final String EncounterNr;
 
   const HomePage({
-    super.key, 
+    super.key,
     required this.userName,
     required this.patientID,
-    //required this.encounterNr,
   });
 
   @override
@@ -35,7 +34,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
   Map<String, dynamic>? vitals;
-
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -51,7 +50,7 @@ class _HomePageState extends State<HomePage> {
       });
     } catch (e) {
       setState(() {
-        vitals = null; // Set to null if there's an error
+        vitals = null;
       });
     }
 
@@ -62,7 +61,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<Map<String, dynamic>> fetchVitals(String patientID) async {
-    //final url = Uri.parse('http://192.168.1.10:3030/api/vitals/$patientID')
     final url = Uri.parse('http://197.232.14.151:3030/api/vitals/$patientID');
     final response = await http.get(url);
 
@@ -73,188 +71,212 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  Widget _buildBody() {
+    if (_selectedIndex == 0) {
+      return _buildHomeBody();
+    } else if (_selectedIndex == 1) {
+      return TelemedicinePage();
+    } else {
+      return OptionPage();
+    }
+  }
+
+  Widget _buildHomeBody() {
     if (_isLoading) {
       return const LoadingScreen(message: "Preparing your dashboard...");
     }
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          appbar(),
+          const SizedBox(height: 25),
+          card(),
+          const SizedBox(height: 25),
+          searchbar(),
+          const SizedBox(height: 20),
+          categorycard(),
+          const SizedBox(height: 25),
+          quickinfo(),
+          doctorslist(),
+          const SizedBox(height: 20),
+          Container(
+            height: 220,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  DoctorCard(
+                    doctorImagePath: 'lib/images/doc1.jpg',
+                    rating: '4.9',
+                    doctorName: 'Dr Julie Kupeka',
+                    profession: 'Gynecologist 7 y.e.',
+                  ),
+                  DoctorCard(
+                    doctorImagePath: 'lib/images/doc2.jpg',
+                    rating: '4.6',
+                    doctorName: 'Dr Eliya Evra',
+                    profession: 'Dentist 3 y.e.',
+                  ),
+                  DoctorCard(
+                    doctorImagePath: 'lib/images/doc3.jpg',
+                    rating: '5.0',
+                    doctorName: 'Dr Erastus K',
+                    profession: 'Brain Surgeon 17 y.e.',
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          chatbutton(context),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }  // end of _buildHomeBody(home page body)
+
+  // bottom navigation bar ------------->
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
-      body: SafeArea(
-        child: SingleChildScrollView(
-        child: Column(
-          children: [
-            //------appbar -----------------------------------------------------------------------
-            appbar(),
-            const SizedBox(height: 25),
-            //-------card ------------------------------------------------------------------------
-            card(),
-            const SizedBox(height:25),
-            //-------searchbar--------------------------------------------------------------------
-            searchbar(),
-            const SizedBox(height:20),
-            //-------categories-------------------------------------------------------------------
-            categorycard(),
-            const SizedBox(height:25),
-            //--------info panel -----------------------------------------------------------------
-            quickinfo(),
-            //-------doctor list------------------------------------------------------------------
-            doctorslist(),
-            const SizedBox(height: 20,),
-            Container(
-              height: 220,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    DoctorCard(
-                      doctorImagePath: 'lib/images/doc1.jpg',
-                      rating: '4.9',
-                      doctorName: 'Dr Julie Kupeka' ,
-                      profession: 'Gynecologist 7 y.e.',
-                    ),
-                    DoctorCard(
-                      doctorImagePath: 'lib/images/doc2.jpg',
-                      rating: '4.6',
-                      doctorName: 'Dr Eliya Evra' ,
-                      profession: 'Dentist 3 y.e.',
-                    ),
-                    DoctorCard(
-                      doctorImagePath: 'lib/images/doc3.jpg',
-                      rating: '5.0',
-                      doctorName: 'Dr Erastus K' ,
-                      profession: 'Brain Surgeon 17 y.e.',
-                    ),
-                  ],
-                ),
-              ),
-            ),         
-            const SizedBox(height:20),
-            //--------chat button -------------------------------------------------------------
-            chatbutton(context),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ) //main body container
+      body: SafeArea(child: _buildBody()),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: const Color.fromARGB(255, 4, 84, 88),
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.video_call),
+            label: 'Telemedicine',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Options',
+          ),
+        ],
+      ),
+    );
+  }
+ 
 
-          
+  Padding doctorslist() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Doctors List',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          Text(
+            'See all',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          )
+        ],
       ),
     );
   }
 
-  Padding doctorslist() {
+  Padding quickinfo() {
     return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Doctors List',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18
+      padding: const EdgeInsets.all(16.0),
+      child: SizedBox(
+        width: 320,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.0),
+            color: Colors.blue[50],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: vitals == null
+                ? const Text("No medical data available.")
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      buildInfoText("Encounter Number: ", vitals!['EncounterNo']),
+                      buildInfoText("Hypertension Status: ", vitals!['hypertensionStatus']),
+                      buildInfoText("Diabetic Status: ", vitals!['diabeticStatus']),
+                      buildInfoText("Notes: ", vitals!['notes']),
+                      buildInfoText("Next Appointment: ", vitals!['nextAppointment'] ?? 'N/A'),
+                    ],
                   ),
-                  ),
-                Text(
-                  'See all',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600]
-                  ),
-                )
-            ],),
-          );
+          ),
+        ),
+      ),
+    );
   }
 
- Padding quickinfo() {
-  return Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: SizedBox(
-      width: 320,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          color: Colors.blue[50],
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 5,
-              blurRadius: 7,
-              offset: Offset(0, 3),
+  Widget buildInfoText(String label, dynamic value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: RichText(
+        text: TextSpan(
+          text: label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 0, 62, 75),
+          ),
+          children: [
+            TextSpan(
+              text: value?.toString() ?? 'N/A',
+              style: const TextStyle(
+                fontWeight: FontWeight.normal,
+                color: Color.fromARGB(255, 0, 144, 141),
+              ),
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: vitals == null
-              ? const Text("No medical data available.")
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    buildInfoText("Encounter Number: ", vitals!['EncounterNo']),
-                    buildInfoText("Hypertension Status: ", vitals!['hypertensionStatus']),
-                    buildInfoText("Diabetic Status: ", vitals!['diabeticStatus']),
-                    buildInfoText("Notes: ", vitals!['notes']),
-                    buildInfoText("Next Appointment: ", vitals!['nextAppointment'] ?? 'N/A'),
-                  ],
-                ),
-        ),
       ),
-    ),
-  );
-}
-
-Widget buildInfoText(String label, dynamic value) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 10.0),
-    child: RichText(
-      text: TextSpan(
-        text: label,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Color.fromARGB(255, 0, 62, 75),
-        ),
-        children: [
-          TextSpan(
-            text: value?.toString() ?? 'N/A',
-            style: const TextStyle(
-              fontWeight: FontWeight.normal,
-              color: Color.fromARGB(255, 0, 144, 141),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-
+    );
+  }
 
   Padding chatbutton(BuildContext context) {
     return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0),
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ChatPage()),
-              );
-            },
-            icon: const Icon(Icons.chat_bubble_outline),
-            label: const Text("Chat"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(237, 255, 249, 139),
-              foregroundColor: const Color.fromARGB(255, 55, 55, 55),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChatPage()),
+          );
+        },
+        icon: const Icon(Icons.chat_bubble_outline),
+        label: const Text("Chat"),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color.fromARGB(237, 255, 249, 139),
+          foregroundColor: const Color.fromARGB(255, 55, 55, 55),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        );
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
   }
 
   Container categorycard() {
@@ -269,7 +291,7 @@ Widget buildInfoText(String label, dynamic value) {
                 context,
                 MaterialPageRoute(
                   builder: (context) => DiagnosisPage(patientID: widget.patientID),
-                  ),
+                ),
               );
             },
             child: CategoryCard(
@@ -282,8 +304,8 @@ Widget buildInfoText(String label, dynamic value) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>  PrescriptionPage(patientID: widget.patientID)
-                  ),
+                  builder: (context) => PrescriptionPage(patientID: widget.patientID),
+                ),
               );
             },
             child: CategoryCard(
@@ -296,184 +318,178 @@ Widget buildInfoText(String label, dynamic value) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>  AppointmentsPage(patientID: widget.patientID),
-                  ),
+                  builder: (context) => AppointmentsPage(patientID: widget.patientID),
+                ),
               );
             },
-            child:  CategoryCard(
+            child: CategoryCard(
               categoryName: 'Appointments',
               iconImagePath: 'lib/icons/schedule.png',
             ),
           ),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LabResultsPage(patientID: widget.patientID),
-                  ),
-                );
-              },
-              child: CategoryCard(
-                categoryName: 'Lab Results',
-                iconImagePath: 'lib/icons/labresults.png',
-              ),
-            ),
-           GestureDetector(
+          GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) =>  BillingPage()),
+                MaterialPageRoute(builder: (context) => LabResultsPage(patientID: widget.patientID)),
               );
             },
-            child:  CategoryCard(
+            child: CategoryCard(
+              categoryName: 'Lab Results',
+              iconImagePath: 'lib/icons/labresults.png',
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => BillingPage()),
+              );
+            },
+            child: CategoryCard(
               categoryName: 'Billing & Invoices',
               iconImagePath: 'lib/icons/bills.png',
             ),
           ),
-          
         ],
-        
       ),
     );
   }
 
   Padding searchbar() {
     return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 202, 202, 202),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  border: InputBorder.none,
-                  hintText: 'How may we help you?'
-                ),
-              ),
-            ),
-          );
+      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 202, 202, 202),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const TextField(
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.search),
+            border: InputBorder.none,
+            hintText: 'How may we help you?',
+          ),
+        ),
+      ),
+    );
   }
 
   Padding card() {
     return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 244, 236, 141),
-                borderRadius: BorderRadius.circular(12)
-              ),
-              child: Row(children: [
-               Image.asset(
-                  'lib/icons/medical-team.png',
-                  height: 100,
-                  width: 100,
-                  fit: BoxFit.cover, // Adjust fit as needed
-                ),
-                const SizedBox(width: 20), //gap
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Welcome to CHMIS Mobile',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Explore our services and view your medical data',
-                        style: TextStyle(
-                          //fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color:Color.fromARGB(255, 72, 157, 172),
-                          borderRadius: BorderRadius.circular(12)
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Get Started!',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 32, 32, 32)
-                            ),
-                          ),
-                        ),
-                      )
-                  ],),
-                )
-              ],),
-            ),
-          );
-  }
-
-Padding appbar() {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Hello,", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text(widget.userName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
-            SizedBox(width: 15),
-            const Text("PID,", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text(widget.patientID, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
-          ],
+      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 244, 236, 141),
+          borderRadius: BorderRadius.circular(12),
         ),
-        Row(
+        child: Row(
           children: [
-            GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DoctorHomePage()),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: const Color.fromARGB(255, 79, 217, 230),
-                ),
-                child: const Icon(Icons.switch_account_sharp, color: Color.fromARGB(255, 2, 70, 62)),
-              ),
+            Image.asset(
+              'lib/icons/medical-team.png',
+              height: 100,
+              width: 100,
+              fit: BoxFit.cover,
             ),
-            SizedBox(width: 10),
-            GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginPage()),
-                    );
-                  },
-                  child: Container(
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Welcome to CHMIS Mobile',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Explore our services and view your medical data',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 72, 157, 172),
                       borderRadius: BorderRadius.circular(12),
-                      color: Colors.redAccent,
                     ),
-                    child: const Icon(Icons.logout, color: Colors.white),
+                    child: const Center(
+                      child: Text(
+                        'Get Started!',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 32, 32, 32),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
+              ),
+            )
           ],
         ),
-      ],
-    ),
-  );
-}
+      ),
+    );
+  }
 
+  Padding appbar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Hello,", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(widget.userName,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
+              const SizedBox(width: 15),
+              const Text("PID,", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(widget.patientID,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
+            ],
+          ),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const DoctorHomePage()),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: const Color.fromARGB(255, 79, 217, 230),
+                  ),
+                  child: const Icon(Icons.switch_account_sharp, color: Color.fromARGB(255, 2, 70, 62)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginPage()),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.redAccent,
+                  ),
+                  child: const Icon(Icons.logout, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
