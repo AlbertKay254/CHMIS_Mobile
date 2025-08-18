@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_ui/flutter_chat_ui.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:uuid/uuid.dart';
-//import 'dart:math';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({Key? key}) : super(key: key);
@@ -11,68 +7,146 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
+class Message {
+  final String id;
+  final String text;
+  final bool isUser;
+  final DateTime createdAt;
+
+  Message({
+    required this.id,
+    required this.text,
+    required this.isUser,
+    required this.createdAt,
+  });
+}
+
 class _ChatPageState extends State<ChatPage> {
-  List<types.Message> _messages = [];
-  final types.User _user = const types.User(id: 'user-123');
+  final List<Message> _messages = [];
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _loadInitialMessages();
+    _addBotMessage('Welcome to CHMIS Chat! How may I assist you today?');
   }
 
-  void _loadInitialMessages() {
-    final welcomeMessage = types.TextMessage(
-      author: const types.User(id: 'bot-456'),
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      id: const Uuid().v4(),
-      text: 'Welcome to CHMIS Chat! How may I assist you today?',
-    );
-
+  void _addBotMessage(String text) {
     setState(() {
-      _messages = [welcomeMessage];
-    });
-  }
-
-  void _handleSendPressed(types.PartialText message) {
-    final textMessage = types.TextMessage(
-      author: _user,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      id: const Uuid().v4(),
-      text: message.text,
-    );
-
-    setState(() {
-      _messages.insert(0, textMessage);
-    });
-
-    // Simulate a bot response after a delay
-    Future.delayed(const Duration(seconds: 1), () {
-      final response = types.TextMessage(
-        author: const types.User(id: 'bot-456'),
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        id: const Uuid().v4(),
-        text: "I'm just a demo bot. You said: '${message.text}'",
+      _messages.add(
+        Message(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          text: text,
+          isUser: false,
+          createdAt: DateTime.now(),
+        ),
       );
-
-      setState(() {
-        _messages.insert(0, response);
-      });
     });
+    _scrollToBottom();
+  }
+
+  void _addUserMessage(String text) {
+    setState(() {
+      _messages.add(
+        Message(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          text: text,
+          isUser: true,
+          createdAt: DateTime.now(),
+        ),
+      );
+    });
+    _scrollToBottom();
+  }
+
+  void _handleSend() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    _addUserMessage(text);
+    _controller.clear();
+
+    Future.delayed(const Duration(seconds: 1), () {
+      _addBotMessage("I'm just a demo bot. You said: '$text'");
+    });
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  Widget _buildMessage(Message message) {
+    final alignment =
+        message.isUser ? Alignment.centerRight : Alignment.centerLeft;
+    final color = message.isUser
+        ? const Color.fromARGB(255, 98, 220, 229)
+        : const Color.fromARGB(255, 41, 41, 41);
+    final textColor = message.isUser ? Colors.black : Colors.white;
+
+    return Align(
+      alignment: alignment,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          message.text,
+          style: TextStyle(color: textColor, fontSize: 16),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Chat")),
-      body: Chat(
-        messages: _messages,
-        onSendPressed: _handleSendPressed,
-        user: _user,
-        theme: const DefaultChatTheme(
-          inputBackgroundColor: Color.fromARGB(255, 98, 220, 229),
-          primaryColor: Color.fromARGB(255, 41, 41, 41),
-        ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount: _messages.length,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemBuilder: (context, index) {
+                return _buildMessage(_messages[index]);
+              },
+            ),
+          ),
+          Container(
+            color: const Color.fromARGB(255, 98, 220, 229),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: const InputDecoration(
+                      hintText: "Type your message...",
+                      border: InputBorder.none,
+                    ),
+                    onSubmitted: (_) => _handleSend(),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: _handleSend,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

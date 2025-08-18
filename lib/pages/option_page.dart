@@ -57,13 +57,12 @@ class OptionPage extends StatelessWidget {
             title: Text(title),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // ✅ Call the action if it exists
               if (action != null) {
                 action();
               } else {
                 // Optional: feedback for items without actions yet
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('$title tapped')),
+                  SnackBar(content: Text('$title loading')),
                 );
               }
             },
