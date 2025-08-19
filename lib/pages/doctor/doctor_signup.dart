@@ -1,4 +1,5 @@
 import 'dart:convert';
+//import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -31,7 +32,7 @@ class _DoctorSignUpPageState extends State<DoctorSignUpPage> {
   Future<void> _doctorSignUp() async {
     if (_formKey.currentState!.validate()) {
       final url = Uri.parse('http://197.232.14.151:3030/api/doctorSignup');
-
+      
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -45,18 +46,52 @@ class _DoctorSignUpPageState extends State<DoctorSignUpPage> {
         }),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Doctor account created!')),
-        );
-        await Future.delayed(const Duration(seconds: 1));
-        if (mounted) Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Signup failed: ${response.body}')),
-        );
-      }
+    if (response.statusCode == 200) {
+      // ✅ Show success popup
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text("✅ Success"),
+          content: Text("Doctor registered successfully!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                _doctorNameController.clear();
+                _departmentController.clear();
+                _emailController.clear();
+                _mobileController.clear();
+                _staffIdController.clear();
+                _passwordController.clear();
+              },
+              child: Text("OK"),
+            ),
+          ],
+        ),
+      );
+
+      // ✅ Also show a SnackBar at the bottom
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Doctor registered successfully!")),
+      );
+    } else {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text("❌ Error"),
+          content: Text("Failed to register doctor. Code: ${response.statusCode}"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text("OK"),
+            ),
+          ],
+        ),
+      );
     }
+  } 
   }
 
   InputDecoration _inputDecoration(String label, IconData icon) {

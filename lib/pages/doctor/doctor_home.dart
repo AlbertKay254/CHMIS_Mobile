@@ -9,7 +9,10 @@ import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/pages/chat_page.dart';
 
 class DoctorHomePage extends StatefulWidget {
-  const DoctorHomePage({super.key});
+  //const DoctorHomePage({super.key, required doctorName, required staffID, required department});
+  const DoctorHomePage({
+    super.key, required staffID, required doctorName,
+  });
 
   @override
   State<DoctorHomePage> createState() => _DoctorHomePageState();

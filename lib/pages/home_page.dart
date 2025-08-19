@@ -457,7 +457,7 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (_) => const DoctorHomePage()),
+                    MaterialPageRoute(builder: (_) => const DoctorHomePage(staffID: null, doctorName: null,)),
                   );
                 },
                 child: Container(
