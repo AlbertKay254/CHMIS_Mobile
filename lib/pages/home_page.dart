@@ -7,7 +7,7 @@ import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/diagnosis_page.dart';
 import 'package:medical_app/pages/doctor/doctor_home.dart';
 import 'package:medical_app/pages/loading_screen..dart';
-import 'package:medical_app/pages/login_page.dart';
+//import 'package:medical_app/pages/login_page.dart';
 import 'package:medical_app/pages/prescription_page.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/util/doctor_card.dart';
@@ -470,22 +470,22 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(width: 10),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginPage()),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.redAccent,
-                  ),
-                  child: const Icon(Icons.logout, color: Colors.white),
-                ),
-              ),
+              // GestureDetector(
+              //   onTap: () {
+              //     Navigator.pushReplacement(
+              //       context,
+              //       MaterialPageRoute(builder: (_) => const LoginPage()),
+              //     );
+              //   },
+              //   child: Container(
+              //     padding: const EdgeInsets.all(12),
+              //     decoration: BoxDecoration(
+              //       borderRadius: BorderRadius.circular(12),
+              //       color: Colors.redAccent,
+              //     ),
+              //     child: const Icon(Icons.logout, color: Colors.white),
+              //   ),
+              // ),
             ],
           ),
         ],
