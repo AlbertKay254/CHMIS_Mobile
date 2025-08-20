@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:medical_app/pages/doctor/outpatient_page.dart';
 import 'package:medical_app/pages/doctor/inpatient_page.dart';
 import 'package:medical_app/pages/doctor/pharmacy_page.dart';
 import 'package:medical_app/pages/doctor/hrpage.dart';
-//import 'package:medical_app/pages/home_page.dart';
-//import 'package:medical_app/pages/login_page.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/telemedicine_page.dart';
 import 'package:medical_app/pages/option_page.dart';
+import 'package:medical_app/pages/doctor/dashboard_page.dart';
 
 class DoctorHomePage extends StatefulWidget {
   final String? doctorName;
@@ -51,9 +51,9 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     if (_selectedIndex == 0) {
       return _buildDoctorHomeBody();
     } else if (_selectedIndex == 1) {
-      return TelemedicinePage();
+      return const TelemedicinePage();
     } else {
-      return OptionPage();
+      return const OptionPage();
     }
   }
 
@@ -67,14 +67,15 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           const SizedBox(height: 25),
           searchbar(),
           const SizedBox(height: 20),
+          dashboardSection(),
+          const SizedBox(height: 20),
+          moreDashboardButton(context),
+          const SizedBox(height: 10),
+          //const SizedBox(height: 20),
           categorycard(),
           const SizedBox(height: 25),
-          patientListTitle(),
-          const SizedBox(height: 20),
-          patientList(),
-          const SizedBox(height: 20),
-          chatbutton(context),
-          const SizedBox(height: 20),
+          //chatbutton(context),
+          const SizedBox(height: 30),
         ],
       ),
     );
@@ -106,47 +107,6 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               ),
             ],
           ),
-          // Row(
-          //   children: [
-          //     GestureDetector(
-          //       onTap: () {
-          //         Navigator.pushReplacement(
-          //           context,
-          //           MaterialPageRoute(
-          //             builder: (_) =>
-          //                 const HomePage(userName: '', patientID: ''),
-          //           ),
-          //         );
-          //       },
-          //       child: Container(
-          //         padding: const EdgeInsets.all(12),
-          //         decoration: BoxDecoration(
-          //           borderRadius: BorderRadius.circular(12),
-          //           color: const Color.fromARGB(255, 79, 217, 230),
-          //         ),
-          //         child: const Icon(Icons.switch_account_sharp,
-          //             color: Color.fromARGB(255, 2, 70, 62)),
-          //       ),
-          //     ),
-          //     const SizedBox(width: 10),
-          //     GestureDetector(
-          //       onTap: () {
-          //         Navigator.pushReplacement(
-          //           context,
-          //           MaterialPageRoute(builder: (_) => const LoginPage()),
-          //         );
-          //       },
-          //       child: Container(
-          //         padding: const EdgeInsets.all(12),
-          //         decoration: BoxDecoration(
-          //           borderRadius: BorderRadius.circular(12),
-          //           color: Colors.redAccent,
-          //         ),
-          //         child: const Icon(Icons.logout, color: Colors.white),
-          //       ),
-          //     ),
-          //   ],
-          // ),
         ],
       ),
     );
@@ -257,43 +217,6 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     );
   }
 
-  /// PATIENT LIST TITLE
-  Padding patientListTitle() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text('Patient List',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          Text('See all',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600])),
-        ],
-      ),
-    );
-  }
-
-  /// PATIENT LIST CARDS
-  Widget patientList() {
-    return SizedBox(
-      height: 200,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 15.0),
-        children: const [
-          PatientCard(
-              name: "John Doe",
-              status: "In Treatment",
-              imagePath: "lib/images/patient1.jpg"),
-          PatientCard(
-              name: "Jane Smith",
-              status: "Recovered",
-              imagePath: "lib/images/patient2.jpg"),
-        ],
-      ),
-    );
-  }
-
   /// CHAT BUTTON
   Padding chatbutton(BuildContext context) {
     return Padding(
@@ -312,6 +235,159 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
           textStyle: const TextStyle(
               fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  /// DASHBOARD (Upgraded Line Graph)
+  Widget dashboardSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14), // smaller padding
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.grey.shade400, blurRadius: 6)],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Patient Encounters (Last 10 Days)",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15), // smaller font
+            ),
+            const SizedBox(height: 12), // less spacing
+            SizedBox(
+              height: 170, // smaller height
+              child: LineChart(
+                LineChartData(
+                  backgroundColor: Colors.white,
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: true,
+                    horizontalInterval: 2,
+                    verticalInterval: 1,
+                    getDrawingHorizontalLine: (value) =>
+                        FlLine(color: Colors.grey.shade300, strokeWidth: 1),
+                    getDrawingVerticalLine: (value) =>
+                        FlLine(color: Colors.grey.shade300, strokeWidth: 1),
+                  ),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 28, // smaller reserved size
+                        interval: 2,
+                        getTitlesWidget: (value, meta) {
+                          return Text(
+                            value.toInt().toString(),
+                            style: const TextStyle(
+                                fontSize: 10, color: Colors.black87), // smaller font
+                          );
+                        },
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 18, // smaller reserved size
+                        interval: 2,
+                        getTitlesWidget: (value, meta) {
+                          return Text(
+                            "D${value.toInt()}",
+                            style: const TextStyle(
+                                fontSize: 9, color: Colors.black87), // smaller font
+                          );
+                        },
+                      ),
+                    ),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                  ),
+                  borderData: FlBorderData(
+                    show: true,
+                    border: Border.all(color: Colors.grey.shade400, width: 1),
+                  ),
+                  minX: 1,
+                  maxX: 10,
+                  minY: 0,
+                  maxY: 14,
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: [
+                        FlSpot(1, 5),
+                        FlSpot(2, 8),
+                        FlSpot(3, 6),
+                        FlSpot(4, 7),
+                        FlSpot(5, 9),
+                        FlSpot(6, 4),
+                        FlSpot(7, 10),
+                        FlSpot(8, 7),
+                        FlSpot(9, 6),
+                        FlSpot(10, 12),
+                      ],
+                      isCurved: true,
+                      color: Colors.blueAccent,
+                      gradient: LinearGradient(
+                        colors: [Colors.blue, Colors.teal],
+                      ),
+                      barWidth: 2.5, // thinner line
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.blue.withOpacity(0.2),
+                            Colors.teal.withOpacity(0.07),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                      dotData: FlDotData(
+                        show: true,
+                        getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                          radius: 2.5,
+                          color: Colors.blueAccent,
+                          strokeWidth: 0,
+                        ),
+                      ), // smaller dots
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// MORE DASHBOARDS BUTTON
+  Widget moreDashboardButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const DashboardsPage()),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color.fromARGB(255, 255, 254, 166),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+        ),
+        child: const Text(
+          "More Dashboards",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 50, 50, 50)),
         ),
       ),
     );
@@ -340,48 +416,6 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               icon: Icon(Icons.video_call), label: 'Telemedicine'),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: 'Options'),
-        ],
-      ),
-    );
-  }
-}
-
-class PatientCard extends StatelessWidget {
-  final String name;
-  final String status;
-  final String imagePath;
-
-  const PatientCard({
-    super.key,
-    required this.name,
-    required this.status,
-    required this.imagePath,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 160,
-      margin: const EdgeInsets.only(right: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.grey.shade400, blurRadius: 5)],
-      ),
-      child: Column(
-        children: [
-          ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.asset(imagePath,
-                height: 100, width: double.infinity, fit: BoxFit.cover),
-          ),
-          const SizedBox(height: 8),
-          Text(name,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 4),
-          Text(status, style: TextStyle(color: Colors.grey[600])),
         ],
       ),
     );

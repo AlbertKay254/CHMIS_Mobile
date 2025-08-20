@@ -158,7 +158,7 @@ Widget build(BuildContext context) {
                   ),
                 ),
                 ),
-                const SizedBox(height: 25),
+                const SizedBox(height: 15),
                  Align(
                   alignment: Alignment.center,
                   child: TextButton(
@@ -179,7 +179,7 @@ Widget build(BuildContext context) {
                     ),
                   ),
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 40),
                 Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
