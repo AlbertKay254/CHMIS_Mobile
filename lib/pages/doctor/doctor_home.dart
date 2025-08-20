@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:medical_app/pages/doctor/outpatient_patient.dart';
+import 'package:medical_app/pages/doctor/outpatient_page.dart';
 import 'package:medical_app/pages/doctor/inpatient_page.dart';
 import 'package:medical_app/pages/doctor/pharmacy_page.dart';
 import 'package:medical_app/pages/doctor/hrpage.dart';
-import 'package:medical_app/pages/home_page.dart';
-import 'package:medical_app/pages/login_page.dart';
+//import 'package:medical_app/pages/home_page.dart';
+//import 'package:medical_app/pages/login_page.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/pages/chat_page.dart';
+import 'package:medical_app/pages/telemedicine_page.dart';
+import 'package:medical_app/pages/option_page.dart';
 
 class DoctorHomePage extends StatefulWidget {
-  //const DoctorHomePage({super.key, required doctorName, required staffID, required department});
+  final String? doctorName;
+  final String? staffID;
+
   const DoctorHomePage({
-    super.key, required staffID, required doctorName,
+    super.key,
+    required this.staffID,
+    required this.doctorName,
   });
 
   @override
@@ -20,6 +26,7 @@ class DoctorHomePage extends StatefulWidget {
 
 class _DoctorHomePageState extends State<DoctorHomePage> {
   bool _isLoading = true;
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -34,95 +41,118 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  Widget _buildBody() {
+    if (_selectedIndex == 0) {
+      return _buildDoctorHomeBody();
+    } else if (_selectedIndex == 1) {
+      return TelemedicinePage();
+    } else {
+      return OptionPage();
     }
-    return Scaffold(
-      backgroundColor: Colors.grey[300],
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              appbar(),
-              const SizedBox(height: 25),
-              welcomeCard(),
-              const SizedBox(height: 25),
-              searchbar(),
-              const SizedBox(height: 20),
-              categorycard(),
-              const SizedBox(height: 25),
-              patientListTitle(),
-              const SizedBox(height: 20),
-              patientList(), // Replace with your actual patient list widget
-              const SizedBox(height: 20),
-              chatbutton(context),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
+  }
+
+  Widget _buildDoctorHomeBody() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          appbar(),
+          const SizedBox(height: 25),
+          welcomeCard(),
+          const SizedBox(height: 25),
+          searchbar(),
+          const SizedBox(height: 20),
+          categorycard(),
+          const SizedBox(height: 25),
+          patientListTitle(),
+          const SizedBox(height: 20),
+          patientList(),
+          const SizedBox(height: 20),
+          chatbutton(context),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }
 
- Padding appbar() {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Welcome,", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text("Dr. Jose Kupeka", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
-          ],
-        ),
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HomePage(userName: '', patientID: '',)), //-----------**********//
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: const Color.fromARGB(255, 79, 217, 230),
+  /// APPBAR WITH DOCTOR NAME
+  Padding appbar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Welcome Dr. ${widget.doctorName ?? ''}",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                child: const Icon(Icons.switch_account_sharp, color: Color.fromARGB(255, 2, 70, 62)),
               ),
-            ),
-            SizedBox(width: 10),
-             GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginPage()),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.redAccent,
-                        ),
-                        child: const Icon(Icons.logout, color: Colors.white),
-                      ),
-                    ),
-          ],
-        ),
-        
-      ],
-    ),
-  );
-}
+              Text(
+                "Staff ID: ${widget.staffID ?? ''}",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.blue[900],
+                ),
+              ),
+            ],
+          ),
+          // Row(
+          //   children: [
+          //     GestureDetector(
+          //       onTap: () {
+          //         Navigator.pushReplacement(
+          //           context,
+          //           MaterialPageRoute(
+          //             builder: (_) =>
+          //                 const HomePage(userName: '', patientID: ''),
+          //           ),
+          //         );
+          //       },
+          //       child: Container(
+          //         padding: const EdgeInsets.all(12),
+          //         decoration: BoxDecoration(
+          //           borderRadius: BorderRadius.circular(12),
+          //           color: const Color.fromARGB(255, 79, 217, 230),
+          //         ),
+          //         child: const Icon(Icons.switch_account_sharp,
+          //             color: Color.fromARGB(255, 2, 70, 62)),
+          //       ),
+          //     ),
+          //     const SizedBox(width: 10),
+          //     GestureDetector(
+          //       onTap: () {
+          //         Navigator.pushReplacement(
+          //           context,
+          //           MaterialPageRoute(builder: (_) => const LoginPage()),
+          //         );
+          //       },
+          //       child: Container(
+          //         padding: const EdgeInsets.all(12),
+          //         decoration: BoxDecoration(
+          //           borderRadius: BorderRadius.circular(12),
+          //           color: Colors.redAccent,
+          //         ),
+          //         child: const Icon(Icons.logout, color: Colors.white),
+          //       ),
+          //     ),
+          //   ],
+          // ),
+        ],
+      ),
+    );
+  }
 
-
+  /// WELCOME CARD
   Padding welcomeCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -140,9 +170,16 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text("Welcome to the Doctor Dashboard", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(
+                    "Welcome to the Doctor Dashboard",
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 10),
-                  Text("Manage the patients, monitor prescriptions and see appointments.", style: TextStyle(fontSize: 14)),
+                  Text(
+                    "Manage the patients, monitor prescriptions and see appointments.",
+                    style: TextStyle(fontSize: 14),
+                  ),
                 ],
               ),
             ),
@@ -152,6 +189,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     );
   }
 
+  /// SEARCH BAR
   Padding searchbar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -172,6 +210,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     );
   }
 
+  /// CATEGORY CARD ROW
   Container categorycard() {
     return Container(
       height: 100,
@@ -179,39 +218,62 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         scrollDirection: Axis.horizontal,
         children: [
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OutpatientPage())),
-            child:  CategoryCard(categoryName: 'Outpatient', iconImagePath: 'lib/icons/outpatient.png'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const OutpatientPage()),
+            ),
+            child: CategoryCard(
+                categoryName: 'Outpatient',
+                iconImagePath: 'lib/icons/outpatient.png'),
           ),
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InpatientPage())),
-            child:  CategoryCard(categoryName: 'Inpatient', iconImagePath: 'lib/icons/inpatient.png'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const InpatientPage()),
+            ),
+            child: CategoryCard(
+                categoryName: 'Inpatient',
+                iconImagePath: 'lib/icons/inpatient.png'),
           ),
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PharmacyPage())),
-            child:  CategoryCard(categoryName: 'Pharmacy', iconImagePath: 'lib/icons/pharmacy.png'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PharmacyPage()),
+            ),
+            child: CategoryCard(
+                categoryName: 'Pharmacy',
+                iconImagePath: 'lib/icons/pharmacy.png'),
           ),
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HRPage())),
-            child:  CategoryCard(categoryName: 'HR', iconImagePath: 'lib/icons/hr.png'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const HRPage()),
+            ),
+            child: CategoryCard(
+                categoryName: 'HR', iconImagePath: 'lib/icons/hr.png'),
           ),
         ],
       ),
     );
   }
 
+  /// PATIENT LIST TITLE
   Padding patientListTitle() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Patient List', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          Text('See all', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+          const Text('Patient List',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text('See all',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600])),
         ],
       ),
     );
   }
 
+  /// PATIENT LIST CARDS
   Widget patientList() {
     return SizedBox(
       height: 200,
@@ -219,27 +281,66 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 15.0),
         children: const [
-          PatientCard(name: "John Doe", status: "In Treatment", imagePath: "lib/images/patient1.jpg"),
-          PatientCard(name: "Jane Smith", status: "Recovered", imagePath: "lib/images/patient2.jpg"),
+          PatientCard(
+              name: "John Doe",
+              status: "In Treatment",
+              imagePath: "lib/images/patient1.jpg"),
+          PatientCard(
+              name: "Jane Smith",
+              status: "Recovered",
+              imagePath: "lib/images/patient2.jpg"),
         ],
       ),
     );
   }
 
+  /// CHAT BUTTON
   Padding chatbutton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: ElevatedButton.icon(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatPage())),
+        onPressed: () =>
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatPage())),
         icon: const Icon(Icons.chat_bubble_outline),
         label: const Text("Chat"),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color.fromARGB(237, 255, 249, 139),
           foregroundColor: const Color.fromARGB(255, 55, 55, 55),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding:
+              const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          textStyle: const TextStyle(
+              fontSize: 16, fontWeight: FontWeight.bold),
         ),
+      ),
+    );
+  }
+
+  /// MAIN SCAFFOLD WITH NAVBAR
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    return Scaffold(
+      backgroundColor: Colors.grey[300],
+      body: SafeArea(child: _buildBody()),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: const Color.fromARGB(255, 4, 84, 88),
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.video_call), label: 'Telemedicine'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Options'),
+        ],
       ),
     );
   }
@@ -270,11 +371,15 @@ class PatientCard extends StatelessWidget {
       child: Column(
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.asset(imagePath, height: 100, width: double.infinity, fit: BoxFit.cover),
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(12)),
+            child: Image.asset(imagePath,
+                height: 100, width: double.infinity, fit: BoxFit.cover),
           ),
           const SizedBox(height: 8),
-          Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(name,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 4),
           Text(status, style: TextStyle(color: Colors.grey[600])),
         ],

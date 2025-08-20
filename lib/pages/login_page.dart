@@ -171,7 +171,7 @@ Widget build(BuildContext context) {
                       );
                     },
                     child: const Text(
-                      "Are you a doctor? Go to Doctor Sign Up",
+                      "Are you a doctor? Go to Doctor Login",
                       style: TextStyle(
                         color: Color.fromARGB(255, 4, 160, 140),
                         fontWeight: FontWeight.bold,
