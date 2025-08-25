@@ -3,12 +3,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:medical_app/pages/doctor/outpatient_page.dart';
 import 'package:medical_app/pages/doctor/inpatient_page.dart';
 import 'package:medical_app/pages/doctor/pharmacy_page.dart';
-import 'package:medical_app/pages/doctor/hrpage.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/telemedicine_page.dart';
 import 'package:medical_app/pages/option_page.dart';
 import 'package:medical_app/pages/doctor/dashboard_page.dart';
+import 'package:medical_app/pages/doctor/appointments_page_doc.dart';
 
 class DoctorHomePage extends StatefulWidget {
   final String? doctorName;
@@ -207,10 +207,10 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           GestureDetector(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const HRPage()),
+              MaterialPageRoute(builder: (_) => AppointmentsPageDoc(staffID: widget.staffID)),
             ),
             child: CategoryCard(
-                categoryName: 'HR', iconImagePath: 'lib/icons/hr.png'),
+                categoryName: 'Appointments', iconImagePath: 'lib/icons/schedule.png'),
           ),
         ],
       ),
@@ -240,13 +240,13 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     );
   }
 
-  /// DASHBOARD (Upgraded Line Graph)
+  /// DASHBOARD 
   Widget dashboardSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(14), // smaller padding
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -257,11 +257,11 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           children: [
             const Text(
               "Patient Encounters (Last 10 Days)",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15), // smaller font
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15), 
             ),
-            const SizedBox(height: 12), // less spacing
+            const SizedBox(height: 12), 
             SizedBox(
-              height: 170, // smaller height
+              height: 170,
               child: LineChart(
                 LineChartData(
                   backgroundColor: Colors.white,
@@ -279,13 +279,13 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 28, // smaller reserved size
+                        reservedSize: 28, 
                         interval: 2,
                         getTitlesWidget: (value, meta) {
                           return Text(
                             value.toInt().toString(),
                             style: const TextStyle(
-                                fontSize: 10, color: Colors.black87), // smaller font
+                                fontSize: 10, color: Colors.black87), 
                           );
                         },
                       ),
@@ -293,13 +293,13 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 18, // smaller reserved size
+                        reservedSize: 18, 
                         interval: 2,
                         getTitlesWidget: (value, meta) {
                           return Text(
                             "D${value.toInt()}",
                             style: const TextStyle(
-                                fontSize: 9, color: Colors.black87), // smaller font
+                                fontSize: 9, color: Colors.black87), 
                           );
                         },
                       ),
@@ -338,7 +338,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                       gradient: LinearGradient(
                         colors: [Colors.blue, Colors.teal],
                       ),
-                      barWidth: 2.5, // thinner line
+                      barWidth: 2.5, 
                       belowBarData: BarAreaData(
                         show: true,
                         gradient: LinearGradient(

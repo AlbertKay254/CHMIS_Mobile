@@ -10,7 +10,7 @@ class Appointment {
 }
 
 class AppointmentsPageDoc extends StatefulWidget {
-  const AppointmentsPageDoc({super.key});
+  const AppointmentsPageDoc({super.key, String? staffID});
 
   @override
   State<AppointmentsPageDoc> createState() => _AppointmentsPageDocState();
