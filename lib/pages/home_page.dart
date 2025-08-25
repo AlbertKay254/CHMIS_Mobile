@@ -5,9 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:medical_app/pages/appointments_page.dart';
 import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/diagnosis_page.dart';
-import 'package:medical_app/pages/doctor/doctor_home.dart';
+//import 'package:medical_app/pages/doctor/doctor_home.dart';
 import 'package:medical_app/pages/loading_screen..dart';
-//import 'package:medical_app/pages/login_page.dart';
 import 'package:medical_app/pages/prescription_page.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/util/doctor_card.dart';
@@ -15,9 +14,9 @@ import 'package:medical_app/pages/billing_page.dart';
 import 'package:medical_app/pages/labresults_page.dart';
 import 'package:medical_app/pages/option_page.dart';
 import 'package:medical_app/pages/telemedicine_page.dart';
+import 'package:medical_app/pages/notifications_page.dart'; // <-- add this import
 
 class HomePage extends StatefulWidget {
-  // db fetches
   final String userName;
   final String patientID;
 
@@ -96,9 +95,9 @@ class _HomePageState extends State<HomePage> {
         children: [
           appbar(),
           const SizedBox(height: 25),
-          card(),
-          const SizedBox(height: 25),
-          searchbar(),
+          card(), // welcome card
+          const SizedBox(height: 20),
+          statCard(),
           const SizedBox(height: 20),
           categorycard(),
           const SizedBox(height: 25),
@@ -140,9 +139,56 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
-  }  // end of _buildHomeBody(home page body)
+  }
 
-  // bottom navigation bar ------------->
+  Padding statCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: SizedBox(
+        height: 120,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        AppointmentsPage(patientID: widget.patientID),
+                  ),
+                );
+              },
+              child: const StatCard(
+                icon: Icons.event,
+                title: "Upcoming Events",
+                value: "3", // <-- replace with dynamic data later
+                color: Colors.deepPurple,
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NotificationsPage(),
+                  ),
+                );
+              },
+              child: const StatCard(
+                icon: Icons.notifications,
+                title: "Notifications",
+                value: "5", // <-- replace with dynamic data later
+                color: Colors.teal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // bottom navigation bar
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,7 +216,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
- 
 
   Padding doctorslist() {
     return Padding(
@@ -216,11 +261,15 @@ class _HomePageState extends State<HomePage> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      buildInfoText("Encounter Number: ", vitals!['EncounterNo']),
-                      buildInfoText("Hypertension Status: ", vitals!['hypertensionStatus']),
-                      buildInfoText("Diabetic Status: ", vitals!['diabeticStatus']),
+                      buildInfoText(
+                          "Encounter Number: ", vitals!['EncounterNo']),
+                      buildInfoText("Hypertension Status: ",
+                          vitals!['hypertensionStatus']),
+                      buildInfoText(
+                          "Diabetic Status: ", vitals!['diabeticStatus']),
                       buildInfoText("Notes: ", vitals!['notes']),
-                      buildInfoText("Next Appointment: ", vitals!['nextAppointment'] ?? 'N/A'),
+                      buildInfoText("Next Appointment: ",
+                          vitals!['nextAppointment'] ?? 'N/A'),
                     ],
                   ),
           ),
@@ -273,7 +322,8 @@ class _HomePageState extends State<HomePage> {
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          textStyle:
+              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -290,7 +340,8 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DiagnosisPage(patientID: widget.patientID),
+                  builder: (context) =>
+                      DiagnosisPage(patientID: widget.patientID),
                 ),
               );
             },
@@ -304,7 +355,8 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PrescriptionPage(patientID: widget.patientID),
+                  builder: (context) =>
+                      PrescriptionPage(patientID: widget.patientID),
                 ),
               );
             },
@@ -318,7 +370,8 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AppointmentsPage(patientID: widget.patientID),
+                  builder: (context) =>
+                      AppointmentsPage(patientID: widget.patientID),
                 ),
               );
             },
@@ -331,7 +384,9 @@ class _HomePageState extends State<HomePage> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => LabResultsPage(patientID: widget.patientID)),
+                MaterialPageRoute(
+                    builder: (context) =>
+                        LabResultsPage(patientID: widget.patientID)),
               );
             },
             child: CategoryCard(
@@ -400,7 +455,8 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   const Text(
                     'Welcome to CHMIS Mobile',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
                   const Text(
@@ -442,51 +498,80 @@ class _HomePageState extends State<HomePage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Hello,", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text("Hello,",
+                  style:
+                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               Text(widget.userName,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900])),
               const SizedBox(width: 15),
-              const Text("PID,", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text("PID,",
+                  style:
+                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               Text(widget.patientID,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue[900])),
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900])),
             ],
           ),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const DoctorHomePage(staffID: null, doctorName: null,)),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: const Color.fromARGB(255, 79, 217, 230),
-                  ),
-                  child: const Icon(Icons.switch_account_sharp, color: Color.fromARGB(255, 2, 70, 62)),
-                ),
-              ),
-              const SizedBox(width: 10),
-              // GestureDetector(
-              //   onTap: () {
-              //     Navigator.pushReplacement(
-              //       context,
-              //       MaterialPageRoute(builder: (_) => const LoginPage()),
-              //     );
-              //   },
-              //   child: Container(
-              //     padding: const EdgeInsets.all(12),
-              //     decoration: BoxDecoration(
-              //       borderRadius: BorderRadius.circular(12),
-              //       color: Colors.redAccent,
-              //     ),
-              //     child: const Icon(Icons.logout, color: Colors.white),
-              //   ),
-              // ),
-            ],
+        ],
+      ),
+    );
+  }
+}
+
+// ------------------ REUSABLE STAT CARD ------------------
+class StatCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final Color color;
+
+  const StatCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 160,
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 28, color: Colors.white),
+          const Spacer(),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 14, color: Colors.white70),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ],
       ),

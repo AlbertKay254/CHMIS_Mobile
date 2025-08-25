@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 //import 'package:medical_app/pages/home_page.dart';
-import 'package:medical_app/pages/login_page.dart';
+//import 'package:medical_app/pages/login_page.dart';
+import 'package:medical_app/pages/account_selection.dart';
 
 
 void main() {
@@ -18,7 +19,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       //useMaterial3: false, 
       //home: const HomePage(),
-      home: const LoginPage(),
+      //home: const LoginPage(),
+      home: const  LoginOptionPage(),
     );
   }
 }

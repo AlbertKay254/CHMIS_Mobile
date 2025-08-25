@@ -171,7 +171,7 @@ class _DoctorLoginPageState extends State<DoctorLoginPage> {
                       );
                     },
                     child: const Text(
-                      "Are you a patient? Go to Patient Sign Up",
+                      "Are you a patient? Go to Patient Login",
                       style: TextStyle(
                         color: Color.fromARGB(255, 4, 160, 140),
                         fontWeight: FontWeight.bold,

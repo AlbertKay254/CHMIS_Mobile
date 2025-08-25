@@ -4,11 +4,11 @@ import 'package:medical_app/pages/doctor/outpatient_page.dart';
 import 'package:medical_app/pages/doctor/inpatient_page.dart';
 import 'package:medical_app/pages/doctor/pharmacy_page.dart';
 import 'package:medical_app/util/category_card.dart';
-import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/telemedicine_page.dart';
 import 'package:medical_app/pages/option_page.dart';
 import 'package:medical_app/pages/doctor/dashboard_page.dart';
 import 'package:medical_app/pages/doctor/appointments_page_doc.dart';
+import 'package:medical_app/pages/notifications_page.dart';
 
 class DoctorHomePage extends StatefulWidget {
   final String? doctorName;
@@ -51,6 +51,8 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     if (_selectedIndex == 0) {
       return _buildDoctorHomeBody();
     } else if (_selectedIndex == 1) {
+      return const DashboardsPage(); // 👈 NEW: Dashboard page from navbar
+    } else if (_selectedIndex == 2) {
       return const TelemedicinePage();
     } else {
       return const OptionPage();
@@ -64,17 +66,13 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           appbar(),
           const SizedBox(height: 25),
           welcomeCard(),
-          const SizedBox(height: 25),
-          searchbar(),
+          const SizedBox(height: 20),
+          statCard(),
           const SizedBox(height: 20),
           dashboardSection(),
           const SizedBox(height: 20),
-          moreDashboardButton(context),
-          const SizedBox(height: 10),
-          //const SizedBox(height: 20),
           categorycard(),
           const SizedBox(height: 25),
-          //chatbutton(context),
           const SizedBox(height: 30),
         ],
       ),
@@ -149,27 +147,6 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     );
   }
 
-  /// SEARCH BAR
-  Padding searchbar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 202, 202, 202),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const TextField(
-          decoration: InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            border: InputBorder.none,
-            hintText: 'Search patients or services...',
-          ),
-        ),
-      ),
-    );
-  }
-
   /// CATEGORY CARD ROW
   Container categorycard() {
     return Container(
@@ -207,40 +184,66 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           GestureDetector(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => AppointmentsPageDoc(staffID: widget.staffID)),
+              MaterialPageRoute(
+                  builder: (_) =>
+                      AppointmentsPageDoc(staffID: widget.staffID)),
             ),
             child: CategoryCard(
-                categoryName: 'Appointments', iconImagePath: 'lib/icons/schedule.png'),
+                categoryName: 'Appointments',
+                iconImagePath: 'lib/icons/schedule.png'),
           ),
         ],
       ),
     );
   }
 
-  /// CHAT BUTTON
-  Padding chatbutton(BuildContext context) {
+  /// STAT CARDS (Events + Notifications)
+  Padding statCard() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: ElevatedButton.icon(
-        onPressed: () =>
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatPage())),
-        icon: const Icon(Icons.chat_bubble_outline),
-        label: const Text("Chat"),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(237, 255, 249, 139),
-          foregroundColor: const Color.fromARGB(255, 55, 55, 55),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding:
-              const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          textStyle: const TextStyle(
-              fontSize: 16, fontWeight: FontWeight.bold),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: SizedBox(
+        height: 120,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        AppointmentsPageDoc(staffID: widget.staffID),
+                  ),
+                );
+              },
+              child: const StatCard(
+                icon: Icons.event,
+                title: "Events",
+                value: "3",
+                color: Colors.deepPurple,
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => NotificationsPage()),
+                );
+              },
+              child: const StatCard(
+                icon: Icons.notifications,
+                title: "Notifications",
+                value: "5",
+                color: Colors.teal,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  /// DASHBOARD 
+  /// DASHBOARD SECTION with "More →"
   Widget dashboardSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -255,11 +258,31 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Patient Encounters (Last 10 Days)",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15), 
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Patient Encounters (Last 10 Days)",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const DashboardsPage()),
+                    );
+                  },
+                  child: const Text(
+                    "More →",
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12), 
+            const SizedBox(height: 12),
             SizedBox(
               height: 170,
               child: LineChart(
@@ -369,30 +392,6 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     );
   }
 
-  /// MORE DASHBOARDS BUTTON
-  Widget moreDashboardButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const DashboardsPage()),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 255, 254, 166),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-        ),
-        child: const Text(
-          "More Dashboards",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 50, 50, 50)),
-        ),
-      ),
-    );
-  }
-
   /// MAIN SCAFFOLD WITH NAVBAR
   @override
   Widget build(BuildContext context) {
@@ -410,12 +409,64 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         selectedItemColor: const Color.fromARGB(255, 4, 84, 88),
         unselectedItemColor: Colors.grey,
         items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: 'Home'),
+              icon: Icon(Icons.dashboard), label: 'Dashboard'), // 👈 NEW
           BottomNavigationBarItem(
               icon: Icon(Icons.video_call), label: 'Telemedicine'),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: 'Options'),
+        ],
+      ),
+    );
+  }
+}
+
+// ------------------ REUSABLE STAT CARD ------------------
+class StatCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final Color color;
+
+  const StatCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 160,
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 28, color: Colors.white),
+          const Spacer(),
+          Text(title,
+              style: const TextStyle(fontSize: 14, color: Colors.white70)),
+          const SizedBox(height: 6),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white)),
         ],
       ),
     );
