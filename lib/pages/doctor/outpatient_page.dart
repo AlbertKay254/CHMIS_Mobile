@@ -90,37 +90,93 @@ class _OutpatientPageState extends State<OutpatientPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final visiblePatients = filteredOutpatients.take(itemsToShow).toList();
+ @override
+Widget build(BuildContext context) {
+  final visiblePatients = filteredOutpatients.take(itemsToShow).toList();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text("Outpatients")),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // Search Bar
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: TextField(
-                    controller: searchController,
-                    onChanged: filterPatients,
-                    decoration: InputDecoration(
-                      hintText: "Search patient by name...",
-                      prefixIcon: const Icon(Icons.search),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
+  return Scaffold(
+    // appBar: AppBar(
+    //     title: const Text(""),
+    //     backgroundColor: const Color.fromARGB(255, 30, 115, 123),
+    //     toolbarHeight: 30,
+    //   ),
+    body: isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : Column(
+            children: [
+              // Header with Back Button
+              Container(
+                width: double.infinity,
+                height: 150,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 30, 115, 123),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                   
+                    // Align(
+                    //   alignment: Alignment.bottomLeft,
+                    //   child: IconButton(
+                    //     icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    //     onPressed: () => Navigator.pop(context),
+                    //   ),
+                    // ),
+                    // Centered text
+                    Align(
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            "Manage Outpatients",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "${outpatients.length} patients in the system",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Search Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: TextField(
+                  controller: searchController,
+                  onChanged: filterPatients,
+                  decoration: InputDecoration(
+                    hintText: "Search patient by name...",
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 0, horizontal: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
+              ),
 
                 Expanded(
                   child: ListView.builder(

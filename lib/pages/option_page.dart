@@ -28,19 +28,20 @@ class OptionPage extends StatelessWidget {
         },
       },
 
-     {
+    {
       'icon': Icons.help,
       'title': 'Help & Support',
       'iconColor': const Color(0xFF161d63),
       'action': () async {
-        const url = 'https://chmis.cbslkenya.co.ke';
-        if (await canLaunchUrl(Uri.parse(url))) {
-          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+        const phone = 'tel:+254702519938';
+        if (await canLaunchUrl(Uri.parse(phone))) {
+          await launchUrl(Uri.parse(phone), mode: LaunchMode.externalApplication);
         } else {
-          throw 'Could not launch $url';
+          throw 'Could not call $phone';
         }
       },
     },
+
 
     {
       'icon': Icons.logout,

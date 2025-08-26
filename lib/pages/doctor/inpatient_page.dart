@@ -89,13 +89,53 @@ class _InpatientPageState extends State<InpatientPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Inpatients"),
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        title: const Text(""),
+        backgroundColor: const Color.fromARGB(255, 240, 255, 152),
+        toolbarHeight: 30,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                // ✅ Header Card with centered items
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 240, 255, 152),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Manage Inpatients",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 54, 54, 54),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "${inpatients.length} patients in the system",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color.fromARGB(179, 33, 33, 33),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
                 // Search bar
                 Padding(
                   padding: const EdgeInsets.all(12.0),
@@ -105,7 +145,8 @@ class _InpatientPageState extends State<InpatientPage> {
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
                       fillColor: Colors.grey[200],
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide.none,
@@ -114,6 +155,8 @@ class _InpatientPageState extends State<InpatientPage> {
                     onChanged: filterPatients,
                   ),
                 ),
+
+                // Patient List
                 Expanded(
                   child: ListView.builder(
                     itemCount: visiblePatients.length,
@@ -121,12 +164,18 @@ class _InpatientPageState extends State<InpatientPage> {
                       final patient = visiblePatients[index];
                       String patientName = patient["patientName"] ?? "Unknown";
                       String initials = patientName.isNotEmpty
-                          ? patientName.trim().split(" ").map((e) => e[0]).take(2).join()
+                          ? patientName
+                              .trim()
+                              .split(" ")
+                              .map((e) => e[0])
+                              .take(2)
+                              .join()
                           : "?";
 
                       return Card(
                         color: const Color.fromARGB(255, 253, 255, 243),
-                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -134,10 +183,12 @@ class _InpatientPageState extends State<InpatientPage> {
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: Colors.teal,
-                            child: Text(initials,
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold)),
+                            child: Text(
+                              initials,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
                           ),
                           title: Text(
                             patientName,
@@ -153,6 +204,8 @@ class _InpatientPageState extends State<InpatientPage> {
                     },
                   ),
                 ),
+
+                // Load more button
                 if (itemsToShow < filteredPatients.length)
                   Padding(
                     padding: const EdgeInsets.all(12.0),

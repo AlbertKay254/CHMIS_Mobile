@@ -1,16 +1,68 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class DashboardsPage extends StatelessWidget {
+class DashboardsPage extends StatefulWidget {
   const DashboardsPage({super.key});
 
   @override
- Widget build(BuildContext context) {
+  State<DashboardsPage> createState() => _DashboardsPageState();
+}
+
+class _DashboardsPageState extends State<DashboardsPage> {
+  List<InOutData> inOutData = [];
+  List<WardOccupancy> wardData = [];
+  List<TopDisease> diseaseData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchInOutData();
+    fetchWardOccupancy();
+    fetchTopDiseases();
+  }
+
+  Future<void> fetchInOutData() async {
+    final response = await http.get(Uri.parse('http://197.232.14.151:3030/api/inoutchart'));
+    if (response.statusCode == 200) {
+      setState(() {
+        inOutData = (json.decode(response.body) as List)
+            .map((data) => InOutData.fromJson(data))
+            .toList();
+      });
+    }
+  }
+
+  Future<void> fetchWardOccupancy() async {
+    final response = await http.get(Uri.parse('http://197.232.14.151:3030/api/wardoccupancy'));
+    if (response.statusCode == 200) {
+      setState(() {
+        wardData = (json.decode(response.body) as List)
+            .map((data) => WardOccupancy.fromJson(data))
+            .toList();
+      });
+    }
+  }
+
+  Future<void> fetchTopDiseases() async {
+    final response = await http.get(Uri.parse('http://197.232.14.151:3030/api/topdiseases'));
+    if (response.statusCode == 200) {
+      setState(() {
+        diseaseData = (json.decode(response.body) as List)
+            .map((data) => TopDisease.fromJson(data))
+            .toList();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: const Text("Dashboards"),
-        backgroundColor:  Colors.grey.shade100,
+        backgroundColor: Colors.grey.shade100,
       ),
       body: ListView(
         padding: const EdgeInsets.all(10),
@@ -40,124 +92,101 @@ class DashboardsPage extends StatelessWidget {
 
           const SizedBox(height: 30),
 
-          // ====== PIE CHART ======
+          // ====== DOUGHNUT CHART ======
           _buildChartContainer(
             title: "Cases Handled",
             child: SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: [
-                    PieChartSectionData(
-                        value: 60,
-                        title: "Outpatient",
-                        color: Colors.blue,
-                        radius: 50,
-                        titleStyle:
-                            const TextStyle(fontSize: 10, color: Colors.white)),
-                    PieChartSectionData(
-                        value: 40,
-                        title: "Inpatient",
-                        color: Colors.green,
-                        radius: 50,
-                        titleStyle:
-                            const TextStyle(fontSize: 10, color: Colors.white)),
-                  ],
+              height: 250,
+              child: SfCircularChart(
+                legend: Legend(
+                  isVisible: true,
+                  position: LegendPosition.bottom,
+                  overflowMode: LegendItemOverflowMode.wrap,
                 ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 30),
-
-          // ====== LINE CHART ======
-          _buildChartContainer(
-            title: "Patients Seen This Week",
-            child: SizedBox(
-              height: 200,
-              child: LineChart(
-                LineChartData(
-                  borderData: FlBorderData(show: false),
-                  titlesData: FlTitlesData(
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),   // 🔹 hide top
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)), // 🔹 hide right
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: true, reservedSize: 28),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          return Text("D${value.toInt()}",
-                              style: const TextStyle(fontSize: 10));
-                        },
-                      ),
-                    ),
-                  ),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: const [
-                        FlSpot(1, 5),
-                        FlSpot(2, 7),
-                        FlSpot(3, 6),
-                        FlSpot(4, 9),
-                        FlSpot(5, 8),
-                        FlSpot(6, 11),
-                        FlSpot(7, 7),
-                      ],
-                      isCurved: true,
-                      color: Colors.teal,
-                      barWidth: 3,
-                      dotData: FlDotData(show: false),
-                    ),
-                  ],
-                )
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 30),
-
-          // ====== BAR CHART ======
-          _buildChartContainer(
-            title: "Appointments Handled This Week",
-            child: SizedBox(
-              height: 200,
-              child: BarChart(
-                BarChartData(
-                    titlesData: FlTitlesData(
-                      topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),   // 🔹 hide top
-                      rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)), // 🔹 hide right
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(showTitles: true, reservedSize: 30),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (value, meta) {
-                            return Text("D${value.toInt()}",
-                                style: const TextStyle(fontSize: 10));
-                          },
-                        ),
-                      ),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    barGroups: [
-                      BarChartGroupData(x: 1, barRods: [BarChartRodData(toY: 8, color: Colors.teal)]),
-                      BarChartGroupData(x: 2, barRods: [BarChartRodData(toY: 12, color: Colors.teal)]),
-                      BarChartGroupData(x: 3, barRods: [BarChartRodData(toY: 6, color: Colors.teal)]),
-                      BarChartGroupData(x: 4, barRods: [BarChartRodData(toY: 9, color: Colors.teal)]),
-                      BarChartGroupData(x: 5, barRods: [BarChartRodData(toY: 11, color: Colors.teal)]),
-                      BarChartGroupData(x: 6, barRods: [BarChartRodData(toY: 7, color: Colors.teal)]),
-                      BarChartGroupData(x: 7, barRods: [BarChartRodData(toY: 10, color: Colors.teal)]),
-                    ],
+                series: <CircularSeries>[
+                  DoughnutSeries<InOutData, String>(
+                    dataSource: inOutData,
+                    xValueMapper: (InOutData data, _) => data.encounterType,
+                    yValueMapper: (InOutData data, _) => data.totalEncounters,
+                    dataLabelSettings: const DataLabelSettings(isVisible: true),
+                    name: 'Cases',
                   )
-                 ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 30),
+
+          // ====== WARD OCCUPANCY BAR CHART ======
+          _buildChartContainer(
+            title: "Ward Occupancy",
+            child: SizedBox(
+              height: 250,
+              child: SfCartesianChart(
+                primaryXAxis: CategoryAxis(),
+                legend: Legend(
+                  isVisible: true,
+                  position: LegendPosition.bottom,
+                ),
+                series: <CartesianSeries>[
+                  ColumnSeries<WardOccupancy, String>(
+                    dataSource: wardData,
+                    xValueMapper: (WardOccupancy data, _) => data.wardName,
+                    yValueMapper: (WardOccupancy data, _) => data.occupiedBeds,
+                    dataLabelSettings: const DataLabelSettings(isVisible: true),
+                    name: 'Occupied Beds',
+                    color: Colors.blue,
+                  ),
+                  ColumnSeries<WardOccupancy, String>(
+                    dataSource: wardData,
+                    xValueMapper: (WardOccupancy data, _) => data.wardName,
+                    yValueMapper: (WardOccupancy data, _) => int.parse(data.availableBeds),
+                    dataLabelSettings: const DataLabelSettings(isVisible: true),
+                    name: 'Available Beds',
+                    color: Colors.green,
+                  )
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 30),
+
+          // ====== TOP DISEASES LINE CHART ======
+          _buildChartContainer(
+            title: "Top Diseases This Week",
+            child: SizedBox(
+              height: 250,
+              child: SfCartesianChart(
+                primaryXAxis: CategoryAxis(),
+                legend: Legend(
+                  isVisible: true,
+                  position: LegendPosition.bottom,
+                  overflowMode: LegendItemOverflowMode.wrap,
+                ),
+                series: _getDiseaseLineSeries(),
+              ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  // Generate line series for each disease
+  List<LineSeries<TopDisease, String>> _getDiseaseLineSeries() {
+    // This is a simplified example - you might need to adjust based on your actual data structure
+    // For a real implementation, you would need data points over time for each disease
+    return diseaseData.map((disease) {
+      return LineSeries<TopDisease, String>(
+        dataSource: [disease], // Just using the single data point for demonstration
+        xValueMapper: (TopDisease data, _) => disease.diagnosisDescription,
+        yValueMapper: (TopDisease data, _) => disease.totalPatients.toDouble(),
+        name: disease.diagnosisDescription,
+        markerSettings: const MarkerSettings(isVisible: true),
+      );
+    }).toList();
   }
 
   // ===== Helper Widgets =====
@@ -201,6 +230,73 @@ class DashboardsPage extends StatelessWidget {
           child,
         ],
       ),
+    );
+  }
+}
+
+// Data model classes
+class InOutData {
+  final String encounterType;
+  final int totalEncounters;
+
+  InOutData({required this.encounterType, required this.totalEncounters});
+
+  factory InOutData.fromJson(Map<String, dynamic> json) {
+    return InOutData(
+      encounterType: json['encounter_type'],
+      totalEncounters: json['total_encounters'],
+    );
+  }
+}
+
+class WardOccupancy {
+  final int wardNumber;
+  final String wardName;
+  final String totalBeds;
+  final int occupiedBeds;
+  final String availableBeds;
+  final String percentageOccupied;
+
+  WardOccupancy({
+    required this.wardNumber,
+    required this.wardName,
+    required this.totalBeds,
+    required this.occupiedBeds,
+    required this.availableBeds,
+    required this.percentageOccupied,
+  });
+
+  factory WardOccupancy.fromJson(Map<String, dynamic> json) {
+    return WardOccupancy(
+      wardNumber: json['wardNumber'],
+      wardName: json['wardName'],
+      totalBeds: json['totalBeds'],
+      occupiedBeds: json['occupiedBeds'],
+      availableBeds: json['availableBeds'],
+      percentageOccupied: json['percentageOccupied'],
+    );
+  }
+}
+
+class TopDisease {
+  final String icd10Code;
+  final String diagnosisDescription;
+  final String description;
+  final int totalPatients;
+
+  TopDisease({
+    required this.icd10Code,
+    required this.diagnosisDescription,
+    required this.description,
+    required this.totalPatients,
+  });
+
+  factory TopDisease.fromJson(Map<String, dynamic> json) {
+    return TopDisease(
+      icd10Code: json['ICD_10_code'],
+      diagnosisDescription: json['DiagnosisDescription'],
+      description: json['description'],
+      totalPatients: json['totalPatients'],
     );
   }
 }

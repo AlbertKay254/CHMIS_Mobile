@@ -1,5 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
+//import 'package:fl_chart/fl_chart.dart';
 import 'package:medical_app/pages/doctor/outpatient_page.dart';
 import 'package:medical_app/pages/doctor/inpatient_page.dart';
 import 'package:medical_app/pages/doctor/pharmacy_page.dart';
@@ -9,6 +10,8 @@ import 'package:medical_app/pages/option_page.dart';
 import 'package:medical_app/pages/doctor/dashboard_page.dart';
 import 'package:medical_app/pages/doctor/appointments_page_doc.dart';
 import 'package:medical_app/pages/notifications_page.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:http/http.dart' as http;
 
 class DoctorHomePage extends StatefulWidget {
   final String? doctorName;
@@ -27,17 +30,58 @@ class DoctorHomePage extends StatefulWidget {
 class _DoctorHomePageState extends State<DoctorHomePage> {
   bool _isLoading = true;
   int _selectedIndex = 0;
+  List<EncounterData> _encounterData = [];
 
   @override
   void initState() {
     super.initState();
     _simulateLoading();
+    _fetchEncounterData();
   }
 
   Future<void> _simulateLoading() async {
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _isLoading = false;
+    });
+  }
+
+  Future<void> _fetchEncounterData() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.1.10:3030/api/encounters10days'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _encounterData = data.map((item) => EncounterData.fromJson(item)).toList();
+        });
+      } else {
+        throw Exception('Failed to load encounter data');
+      }
+    } catch (e) {
+      print('Error fetching encounter data: $e');
+      // Fallback to mock data if API fails
+      setState(() {
+        _encounterData = _getMockEncounterData();
+      });
+    }
+  }
+
+  List<EncounterData> _getMockEncounterData() {
+    // Generate mock data for demonstration
+    return List.generate(10, (index) {
+      final date = DateTime.now().subtract(Duration(days: 9 - index));
+      return EncounterData(
+        date: date,
+        encounterCount: 50 + (index * 5) + (index % 3 * 10),
+        uniquePatients: 40 + (index * 4) + (index % 2 * 8),
+        admissions: (5 + index).toString(),
+        diagnosisUpdates: (2 + index % 3).toString(),
+        drugsIssued: (20 + index * 2).toString(),
+        labRequests: (index % 4).toString(),
+      );
     });
   }
 
@@ -51,7 +95,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     if (_selectedIndex == 0) {
       return _buildDoctorHomeBody();
     } else if (_selectedIndex == 1) {
-      return const DashboardsPage(); // 👈 NEW: Dashboard page from navbar
+      return const DashboardsPage();
     } else if (_selectedIndex == 2) {
       return const TelemedicinePage();
     } else {
@@ -285,106 +329,41 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             const SizedBox(height: 12),
             SizedBox(
               height: 170,
-              child: LineChart(
-                LineChartData(
-                  backgroundColor: Colors.white,
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: true,
-                    horizontalInterval: 2,
-                    verticalInterval: 1,
-                    getDrawingHorizontalLine: (value) =>
-                        FlLine(color: Colors.grey.shade300, strokeWidth: 1),
-                    getDrawingVerticalLine: (value) =>
-                        FlLine(color: Colors.grey.shade300, strokeWidth: 1),
-                  ),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 28, 
-                        interval: 2,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            value.toInt().toString(),
-                            style: const TextStyle(
-                                fontSize: 10, color: Colors.black87), 
-                          );
-                        },
+              child: _encounterData.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : SfCartesianChart(
+                      primaryXAxis: CategoryAxis(),
+                      primaryYAxis: NumericAxis(
+                        minimum: 0,
+                        maximum: _encounterData
+                                .map((e) => e.encounterCount)
+                                .reduce((a, b) => a > b ? a : b) *
+                            1.2, // Add 20% padding to top
                       ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 18, 
-                        interval: 2,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            "D${value.toInt()}",
-                            style: const TextStyle(
-                                fontSize: 9, color: Colors.black87), 
-                          );
-                        },
-                      ),
-                    ),
-                    topTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                  ),
-                  borderData: FlBorderData(
-                    show: true,
-                    border: Border.all(color: Colors.grey.shade400, width: 1),
-                  ),
-                  minX: 1,
-                  maxX: 10,
-                  minY: 0,
-                  maxY: 14,
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: [
-                        FlSpot(1, 5),
-                        FlSpot(2, 8),
-                        FlSpot(3, 6),
-                        FlSpot(4, 7),
-                        FlSpot(5, 9),
-                        FlSpot(6, 4),
-                        FlSpot(7, 10),
-                        FlSpot(8, 7),
-                        FlSpot(9, 6),
-                        FlSpot(10, 12),
-                      ],
-                      isCurved: true,
-                      color: Colors.blueAccent,
-                      gradient: LinearGradient(
-                        colors: [Colors.blue, Colors.teal],
-                      ),
-                      barWidth: 2.5, 
-                      belowBarData: BarAreaData(
-                        show: true,
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.blue.withOpacity(0.2),
-                            Colors.teal.withOpacity(0.07),
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                      ),
-                      dotData: FlDotData(
-                        show: true,
-                        getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-                          radius: 2.5,
+                      tooltipBehavior: TooltipBehavior(enable: true),
+                      series: <CartesianSeries>[
+                        LineSeries<EncounterData, String>(
+                          dataSource: _encounterData,
+                          xValueMapper: (EncounterData data, _) =>
+                              'Day ${_encounterData.indexOf(data) + 1}',
+                          yValueMapper: (EncounterData data, _) =>
+                              data.encounterCount,
+                          name: 'Encounters',
                           color: Colors.blueAccent,
-                          strokeWidth: 0,
+                          markerSettings: const MarkerSettings(isVisible: true),
                         ),
-                      ), // smaller dots
+                        LineSeries<EncounterData, String>(
+                          dataSource: _encounterData,
+                          xValueMapper: (EncounterData data, _) =>
+                              'Day ${_encounterData.indexOf(data) + 1}',
+                          yValueMapper: (EncounterData data, _) =>
+                              data.uniquePatients,
+                          name: 'Unique Patients',
+                          color: Colors.green,
+                          markerSettings: const MarkerSettings(isVisible: true),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -411,13 +390,46 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard), label: 'Dashboard'), // 👈 NEW
+              icon: Icon(Icons.dashboard), label: 'Dashboard'),
           BottomNavigationBarItem(
               icon: Icon(Icons.video_call), label: 'Telemedicine'),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: 'Options'),
         ],
       ),
+    );
+  }
+}
+
+// Data model for encounter data
+class EncounterData {
+  final DateTime date;
+  final int encounterCount;
+  final int uniquePatients;
+  final String admissions;
+  final String diagnosisUpdates;
+  final String drugsIssued;
+  final String labRequests;
+
+  EncounterData({
+    required this.date,
+    required this.encounterCount,
+    required this.uniquePatients,
+    required this.admissions,
+    required this.diagnosisUpdates,
+    required this.drugsIssued,
+    required this.labRequests,
+  });
+
+  factory EncounterData.fromJson(Map<String, dynamic> json) {
+    return EncounterData(
+      date: DateTime.parse(json['date']),
+      encounterCount: json['encounter_count'],
+      uniquePatients: json['unique_patients'],
+      admissions: json['admissions'],
+      diagnosisUpdates: json['diagnosis_updates'],
+      drugsIssued: json['drugs_issued'],
+      labRequests: json['lab_requests'],
     );
   }
 }

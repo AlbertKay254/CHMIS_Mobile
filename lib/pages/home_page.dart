@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:medical_app/pages/appointments_page.dart';
-import 'package:medical_app/pages/chat_page.dart';
+//import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/diagnosis_page.dart';
 //import 'package:medical_app/pages/doctor/doctor_home.dart';
 import 'package:medical_app/pages/loading_screen..dart';
@@ -134,7 +134,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 20),
-          chatbutton(context),
+          //chatbutton(context),
           const SizedBox(height: 20),
         ],
       ),
@@ -143,7 +143,7 @@ class _HomePageState extends State<HomePage> {
 
   Padding statCard() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 40.0),
       child: SizedBox(
         height: 120,
         child: ListView(
@@ -303,31 +303,31 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Padding chatbutton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: ElevatedButton.icon(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ChatPage()),
-          );
-        },
-        icon: const Icon(Icons.chat_bubble_outline),
-        label: const Text("Chat"),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(237, 255, 249, 139),
-          foregroundColor: const Color.fromARGB(255, 55, 55, 55),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          textStyle:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
+  // Padding chatbutton(BuildContext context) {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 25.0),
+  //     child: ElevatedButton.icon(
+  //       onPressed: () {
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => const ChatPage()),
+  //         );
+  //       },
+  //       icon: const Icon(Icons.chat_bubble_outline),
+  //       label: const Text("Chat"),
+  //       style: ElevatedButton.styleFrom(
+  //         backgroundColor: const Color.fromARGB(237, 255, 249, 139),
+  //         foregroundColor: const Color.fromARGB(255, 55, 55, 55),
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(12),
+  //         ),
+  //         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+  //         textStyle:
+  //             const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Container categorycard() {
     return Container(
