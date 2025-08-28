@@ -18,51 +18,56 @@ class _DoctorLoginPageState extends State<DoctorLoginPage> {
   final _passwordController = TextEditingController();
 
   void _loginDoctor() async {
-  if (_formKey.currentState!.validate()) {
-    try {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Logging in...")),
-      );
-
-      final url = Uri.parse('http://197.232.14.151:3030/api/doctorLogin');
-
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'email': _emailController.text,
-          'password': _passwordController.text,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
-
+    if (_formKey.currentState!.validate()) {
+      try {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Welcome Dr. ${jsonResponse['doctor']['doctorName']}')),
+          const SnackBar(content: Text("Logging in...")),
         );
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DoctorHomePage(
-              doctorName: jsonResponse['doctor']['doctorName'],
-              staffID: jsonResponse['doctor']['staffID'],
+        final url = Uri.parse('http://197.232.14.151:3030/api/doctorLogin');
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'email': _emailController.text,
+            'password': _passwordController.text,
+          }),
+        );
+
+        if (!mounted) return;
+
+        if (response.statusCode == 200) {
+          final jsonResponse = json.decode(response.body);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Welcome Dr. ${jsonResponse['doctor']['doctorName']}'),
             ),
-          ),
-        );
-      } else {
+          );
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DoctorHomePage(
+                doctorName: jsonResponse['doctor']['doctorName'],
+                staffID: jsonResponse['doctor']['staffID'],
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Login failed: ${response.body}')),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: ${response.body}')),
+          SnackBar(content: Text('Error: $e')),
         );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
     }
   }
-}
 
   void _forgotPassword() {
     showDialog(
@@ -77,6 +82,7 @@ class _DoctorLoginPageState extends State<DoctorLoginPage> {
     );
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 238, 250, 252),
@@ -95,8 +101,7 @@ class _DoctorLoginPageState extends State<DoctorLoginPage> {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 30),
-                
-                const SizedBox(height: 20),
+
                 // Email Field
                 TextFormField(
                   controller: _emailController,
@@ -166,7 +171,7 @@ class _DoctorLoginPageState extends State<DoctorLoginPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => LoginPage(),
+                          builder: (context) => const LoginPage(),
                         ),
                       );
                     },

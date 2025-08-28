@@ -14,7 +14,8 @@ import 'package:medical_app/pages/billing_page.dart';
 import 'package:medical_app/pages/labresults_page.dart';
 import 'package:medical_app/pages/option_page.dart';
 import 'package:medical_app/pages/telemedicine_page.dart';
-import 'package:medical_app/pages/notifications_page.dart'; // <-- add this import
+import 'package:medical_app/pages/notifications_page.dart';
+import 'package:medical_app/pages/patients_notes_page.dart';
 
 class HomePage extends StatefulWidget {
   final String userName;
@@ -34,22 +35,28 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
   Map<String, dynamic>? vitals;
   int _selectedIndex = 0;
+  int todaysNotesCount = 0;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    
   }
 
   Future<void> _loadData() async {
     try {
       final fetchedVitals = await fetchVitals(widget.patientID);
+      final notesCount = await fetchTodaysNotesCount(widget.patientID);
+
       setState(() {
         vitals = fetchedVitals;
+        todaysNotesCount = notesCount;
       });
     } catch (e) {
       setState(() {
         vitals = null;
+        todaysNotesCount = 0;
       });
     }
 
@@ -70,6 +77,35 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+    Future<int> fetchTodaysNotesCount(String patientID) async {
+      final url = Uri.parse('http://197.232.14.151:3030/api/notes/today/$patientID');
+      final response = await http.get(url);
+
+      print("🔵 Status: ${response.statusCode}");
+      print("🔵 Raw body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print("🟢 Decoded data: $data");
+
+        if (data is Map<String, dynamic> && data.containsKey('count')) {
+          final count = data['count'];
+          print("🟡 Extracted count: $count (${count.runtimeType})");
+
+          if (count is int) {
+            return count;
+          } else if (count is String) {
+            return int.tryParse(count) ?? 0;
+          }
+        }
+        return 0; // unexpected structure
+      } else {
+        return 0; // non-200
+      }
+    }
+
+
+    
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -141,52 +177,72 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Padding statCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40.0),
-      child: SizedBox(
-        height: 120,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          children: [
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        AppointmentsPage(patientID: widget.patientID),
-                  ),
-                );
-              },
-              child: const StatCard(
-                icon: Icons.event,
-                title: "Upcoming Events",
-                value: "3", // <-- replace with dynamic data later
-                color: Colors.deepPurple,
+    Padding statCard() {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: SizedBox(
+          height: 120,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AppointmentsPage(patientID: widget.patientID),
+                    ),
+                  );
+                },
+                child: const StatCard(
+                  icon: Icons.event,
+                  title: "Upcoming Events",
+                  value: "3", // <-- replace with dynamic data later
+                  color: Colors.deepPurple,
+                ),
               ),
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => NotificationsPage(),
-                  ),
-                );
-              },
-              child: const StatCard(
-                icon: Icons.notifications,
-                title: "Notifications",
-                value: "5", // <-- replace with dynamic data later
-                color: Colors.teal,
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotificationsPage(),
+                    ),
+                  );
+                },
+                child: const StatCard(
+                  icon: Icons.notifications,
+                  title: "Notifications",
+                  value: "5", // <-- replace with dynamic data later
+                  color: Colors.teal,
+                ),
               ),
-            ),
-          ],
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PatientNotesPage(patientID: widget.patientID),
+                    ),
+                  );
+                },
+                child: StatCard(
+                  icon: Icons.note,
+                  title: "Today's Notes",
+                  value: todaysNotesCount > 0
+                      ? todaysNotesCount.toString()
+                      : "0", 
+                  color: Colors.orange,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
+
 
   // bottom navigation bar
   @override

@@ -60,10 +60,10 @@ class _DashboardsPageState extends State<DashboardsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        title: const Text("Dashboards"),
-        backgroundColor: Colors.grey.shade100,
-      ),
+      // appBar: AppBar(
+      //   title: const Text("Dashboards"),
+      //   backgroundColor: Colors.grey.shade100,
+      // ),
       body: ListView(
         padding: const EdgeInsets.all(10),
         children: [

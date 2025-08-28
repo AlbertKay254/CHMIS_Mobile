@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-//import 'package:medical_app/pages/doctor/doctor_home.dart';
 import 'package:medical_app/pages/doctor/doctor_login.dart';
 import 'package:medical_app/pages/home_page.dart';
 import 'package:medical_app/pages/signup_page.dart';
@@ -19,44 +18,44 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
 
   void _login() async {
-  if (_formKey.currentState!.validate()) {
-    //final url = Uri.parse('http://192.168.1.10:3030/api/login');
-    final url = Uri.parse('http://197.232.14.151:3030/api/login');
-    
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'email': _emailController.text,
-        'password': _passwordController.text,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Welcome, ${jsonResponse['user']['name']}')),
+    if (_formKey.currentState!.validate()) {
+      final url = Uri.parse('http://197.232.14.151:3030/api/login');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': _emailController.text,
+          'password': _passwordController.text,
+        }),
       );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
+
+      if (!mounted) return; // ✅ added check
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Welcome, ${jsonResponse['user']['name']}')),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
             builder: (context) => HomePage(
               userName: jsonResponse['user']['name'],
-              patientID:  jsonResponse['user']['patientID'],
-              //encounterNr: null,---------------------------------
-           ),
+              patientID: jsonResponse['user']['patientID'],
+            ),
           ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: ${response.body}')),
-      );
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: ${response.body}')),
+        );
+      }
     }
   }
-}
 
-   void _goToSignUp() {
+  void _goToSignUp() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const SignupPage()),
@@ -64,7 +63,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _forgotPassword() {
-    // Show a basic alert or navigate to a forgot password page
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -77,7 +75,8 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 238, 250, 252),
       body: SafeArea(
@@ -95,8 +94,7 @@ Widget build(BuildContext context) {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 30),
-                
-                const SizedBox(height: 10),
+
                 // Email Field
                 TextFormField(
                   controller: _emailController,
@@ -155,8 +153,8 @@ Widget build(BuildContext context) {
                         fontWeight: FontWeight.bold,
                         color: Colors.white,      
                       ),
+                    ),
                   ),
-                ),
                 ),
                 const SizedBox(height: 15),
                  Align(
@@ -166,7 +164,7 @@ Widget build(BuildContext context) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => DoctorLoginPage(),
+                          builder: (context) => const DoctorLoginPage(),
                         ),
                       );
                     },
@@ -181,25 +179,25 @@ Widget build(BuildContext context) {
                 ),
                 const SizedBox(height: 40),
                 Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: _goToSignUp,
-                        icon: const Icon(Icons.arrow_forward, size: 18, color: Color.fromARGB(255, 51, 51, 51), weight: 500,),
-                        label: const Text(
-                          "Don't have an account? Sign Up",
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 241, 255, 138), // button color
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30), // rounded corners
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        ),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _goToSignUp,
+                      icon: const Icon(Icons.arrow_forward, size: 18, color: Color.fromARGB(255, 51, 51, 51), weight: 500,),
+                      label: const Text(
+                        "Don't have an account? Sign Up",
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                       ),
-                    ],
-                  )
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 241, 255, 138),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
           ),

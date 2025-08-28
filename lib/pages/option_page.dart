@@ -58,21 +58,21 @@ class OptionPage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(252, 64, 174, 184),
-        elevation: 2,
-        centerTitle: true,
-        title: const Text(
-          'Options',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-            color: Colors.white,
-            letterSpacing: 1.2,
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: const Color.fromARGB(252, 64, 174, 184),
+      //   elevation: 2,
+      //   centerTitle: true,
+      //   title: const Text(
+      //     'Options',
+      //     style: TextStyle(
+      //       fontWeight: FontWeight.bold,
+      //       fontSize: 22,
+      //       color: Colors.white,
+      //       letterSpacing: 1.2,
+      //     ),
+      //   ),
+      //   iconTheme: const IconThemeData(color: Colors.white),
+      // ),
       body: ListView.separated(
         itemCount: options.length,
         separatorBuilder: (context, index) => const Divider(height: 1),

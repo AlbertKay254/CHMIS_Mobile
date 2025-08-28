@@ -11,6 +11,7 @@ import 'package:medical_app/pages/doctor/dashboard_page.dart';
 import 'package:medical_app/pages/doctor/appointments_page_doc.dart';
 import 'package:medical_app/pages/notifications_page.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:medical_app/pages/doctor/doctor_notes.dart';
 import 'package:http/http.dart' as http;
 
 class DoctorHomePage extends StatefulWidget {
@@ -49,7 +50,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   Future<void> _fetchEncounterData() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.10:3030/api/encounters10days'),
+        Uri.parse('http://197.232.14.151:3030/api/encounters10days'),
       );
 
       if (response.statusCode == 200) {
@@ -235,6 +236,17 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             child: CategoryCard(
                 categoryName: 'Appointments',
                 iconImagePath: 'lib/icons/schedule.png'),
+          ),
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>
+                      DoctorNotesPage(staffID: widget.staffID, doctorName: widget.doctorName)),
+            ),
+            child: CategoryCard(
+                categoryName: 'Notes',
+                iconImagePath: 'lib/icons/notes2.png'),
           ),
         ],
       ),
