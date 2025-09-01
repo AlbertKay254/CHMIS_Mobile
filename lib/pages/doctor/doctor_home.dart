@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 //import 'package:fl_chart/fl_chart.dart';
 import 'package:medical_app/pages/doctor/outpatient_page.dart';
 import 'package:medical_app/pages/doctor/inpatient_page.dart';
-import 'package:medical_app/pages/doctor/pharmacy_page.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/pages/telemedicine_page.dart';
 import 'package:medical_app/pages/option_page.dart';
@@ -12,7 +11,9 @@ import 'package:medical_app/pages/doctor/appointments_page_doc.dart';
 import 'package:medical_app/pages/notifications_page.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:medical_app/pages/doctor/doctor_notes.dart';
+import 'package:medical_app/pages/doctor/prescriptions_page.dart';
 import 'package:http/http.dart' as http;
+
 
 class DoctorHomePage extends StatefulWidget {
   final String? doctorName;
@@ -220,10 +221,11 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           GestureDetector(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const PharmacyPage()),
+              MaterialPageRoute(builder: (_) => 
+               PrescriptionsPage(staffID: widget.staffID, doctorName: widget.doctorName)),
             ),
             child: CategoryCard(
-                categoryName: 'Pharmacy',
+                categoryName: 'Prescription',
                 iconImagePath: 'lib/icons/pharmacy.png'),
           ),
           GestureDetector(
