@@ -233,7 +233,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
               context,
               MaterialPageRoute(
                   builder: (_) =>
-                      AppointmentsPageDoc(staffID: widget.staffID)),
+                      AppointmentsPageDoc(staffID: widget.staffID, doctorName: widget.doctorName)),
             ),
             child: CategoryCard(
                 categoryName: 'Appointments',

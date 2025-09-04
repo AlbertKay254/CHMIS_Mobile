@@ -374,6 +374,7 @@ class _PrescriptionFormPageState extends State<PrescriptionFormPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(""),
+        
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
