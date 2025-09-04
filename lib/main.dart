@@ -4,9 +4,15 @@ import 'package:flutter/material.dart';
 //import 'package:medical_app/pages/home_page.dart';
 //import 'package:medical_app/pages/login_page.dart';
 import 'package:medical_app/pages/account_selection.dart';
+import 'package:medical_app/services/notification_service.dart';
 
 
-void main() {
+Future<void> main() async {
+  
+  //notifications
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
+
   runApp(const MyApp());
 }
 
@@ -18,8 +24,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       //useMaterial3: false, 
-      //home: const HomePage(),
-      //home: const LoginPage(),
       home: const  LoginOptionPage(),
     );
   }

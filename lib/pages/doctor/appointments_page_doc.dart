@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
+// ---------------- Appointments Page ----------------
 class AppointmentsPageDoc extends StatefulWidget {
   final String? staffID;
   final String? doctorName;
@@ -44,16 +45,45 @@ class _AppointmentsPageDocState extends State<AppointmentsPageDoc> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
+        final now = DateTime.now();
 
         // Build appointments map (group by date)
         Map<DateTime, List<dynamic>> fetchedMap = {};
         for (var appt in data) {
-          final date = DateTime.tryParse(appt['date'] ?? '');
-          if (date != null) {
-            final key = DateTime.utc(date.year, date.month, date.day);
-            fetchedMap.putIfAbsent(key, () => []);
-            fetchedMap[key]!.add(appt);
+          final dateStr = appt['date']?.toString() ?? '';
+          final timeStr = appt['time']?.toString() ?? '';
+
+          // parse date
+          final dateOnly = DateTime.tryParse(dateStr);
+          if (dateOnly == null) continue;
+
+          // parse time
+          int hour = 0, minute = 0;
+          if (timeStr.isNotEmpty) {
+            try {
+              final t = DateFormat.Hm().parse(timeStr); // expects HH:mm
+              hour = t.hour;
+              minute = t.minute;
+            } catch (_) {}
           }
+
+          final apptDateTime = DateTime(
+            dateOnly.year,
+            dateOnly.month,
+            dateOnly.day,
+            hour,
+            minute,
+          );
+
+          // ✅ Mark as Passed if before now
+          if (apptDateTime.isBefore(now)) {
+            appt['status'] = "Passed";
+          }
+
+          final key =
+              DateTime.utc(dateOnly.year, dateOnly.month, dateOnly.day);
+          fetchedMap.putIfAbsent(key, () => []);
+          fetchedMap[key]!.add(appt);
         }
 
         setState(() {
@@ -99,7 +129,7 @@ class _AppointmentsPageDocState extends State<AppointmentsPageDoc> {
         builder: (_) => AppointmentPatientListPage(
           staffID: widget.staffID ?? "",
           doctorName: widget.doctorName ?? "Dr. Unknown",
-          onSaved: () => fetchAppointments(), // ✅ fixed
+          onSaved: () => fetchAppointments(),
         ),
       ),
     );
@@ -154,7 +184,7 @@ class _AppointmentsPageDocState extends State<AppointmentsPageDoc> {
             child: Row(
               children: [
                 const Text(
-                  "Appointments:",
+                  "",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const Spacer(),
@@ -194,8 +224,15 @@ class _AppointmentsPageDocState extends State<AppointmentsPageDoc> {
                                   title: Text(appt['title'] ?? "Untitled"),
                                   subtitle: Text(
                                       "${appt['name']} • ${time.toString()}"),
-                                  trailing:
-                                      Text(appt['status'] ?? "Upcoming"),
+                                  trailing: Text(
+                                    appt['status'] ?? "Upcoming",
+                                    style: TextStyle(
+                                      color: (appt['status'] == "Passed")
+                                          ? Colors.red
+                                          : Colors.green,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               );
                             },
@@ -370,6 +407,52 @@ class _AppointmentFormPageState extends State<AppointmentFormPage> {
   DateTime? selectedDate;
   bool isSaving = false;
 
+  List<dynamic> patientAppointments = [];
+  bool loadingAppointments = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPatientAppointments();
+  }
+
+  Future<void> fetchPatientAppointments() async {
+  setState(() => loadingAppointments = true);
+  try {
+    final response = await http.get(Uri.parse(
+        "http://197.232.14.151:3030/api/userAppointments/${widget.patientID}"));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> allAppointments = json.decode(response.body);
+
+      final now = DateTime.now();
+
+      // Filter: only appointments today or in the future
+      final upcoming = allAppointments.where((appt) {
+        try {
+          final apptDate = DateTime.parse(appt['date']);
+          return !apptDate.isBefore(
+            DateTime(now.year, now.month, now.day), // midnight today
+          );
+        } catch (e) {
+          debugPrint("Invalid date for appointment: $appt");
+          return false;
+        }
+      }).toList();
+
+      setState(() {
+        patientAppointments = upcoming;
+        loadingAppointments = false;
+      });
+    } else {
+      setState(() => loadingAppointments = false);
+    }
+  } catch (e) {
+    debugPrint("Error fetching patient appointments: $e");
+    setState(() => loadingAppointments = false);
+  }
+}
+
   Future<void> saveAppointment() async {
     if (!_formKey.currentState!.validate() ||
         selectedDate == null ||
@@ -409,7 +492,13 @@ class _AppointmentFormPageState extends State<AppointmentFormPage> {
           const SnackBar(content: Text("Appointment saved successfully")),
         );
         widget.onSaved();
-        Navigator.pop(context);
+        await fetchPatientAppointments(); // refresh list
+        titleController.clear();
+        setState(() {
+          selectedDate = null;
+          selectedTime = null;
+          type = "Consultation";
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed: ${response.statusCode}")),
@@ -449,95 +538,135 @@ class _AppointmentFormPageState extends State<AppointmentFormPage> {
       appBar: AppBar(title: const Text("New Appointment")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Card(
-                color: Colors.blue.shade50,
-                margin: const EdgeInsets.only(bottom: 20),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Doctor: ${widget.doctorName}",
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text("Staff ID: ${widget.staffID}"),
-                      const SizedBox(height: 6),
-                      Text("Patient: ${widget.patientName}"),
-                      Text("Patient ID: ${widget.patientID}"),
-                    ],
-                  ),
-                ),
-              ),
-              TextFormField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: "Title",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (val) =>
-                    val == null || val.isEmpty ? "Enter a title" : null,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: type,
-                items: ["Consultation", "Follow-up", "Treatment", "Other"]
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                    .toList(),
-                onChanged: (val) => setState(() => type = val!),
-                decoration: const InputDecoration(
-                  labelText: "Type",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: pickDate,
-                      icon: const Icon(Icons.date_range),
-                      label: Text(selectedDate == null
-                          ? "Select Date"
-                          : DateFormat("yyyy-MM-dd").format(selectedDate!)),
+                  Card(
+                    color: Colors.blue.shade50,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Doctor: ${widget.doctorName}",
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          Text("Staff ID: ${widget.staffID}"),
+                          const SizedBox(height: 6),
+                          Text("Patient: ${widget.patientName}"),
+                          Text("Patient ID: ${widget.patientID}"),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
+                  TextFormField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      labelText: "Title",
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (val) =>
+                        val == null || val.isEmpty ? "Enter a title" : null,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: type,
+                    items: ["Consultation", "Follow-up", "Treatment", "Other"]
+                        .map((t) =>
+                            DropdownMenuItem(value: t, child: Text(t)))
+                        .toList(),
+                    onChanged: (val) => setState(() => type = val!),
+                    decoration: const InputDecoration(
+                      labelText: "Type",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: pickDate,
+                          icon: const Icon(Icons.date_range),
+                          label: Text(selectedDate == null
+                              ? "Select Date"
+                              : DateFormat("yyyy-MM-dd")
+                                  .format(selectedDate!)),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: pickTime,
+                          icon: const Icon(Icons.access_time),
+                          label: Text(selectedTime == null
+                              ? "Select Time"
+                              : selectedTime!.format(context)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: pickTime,
-                      icon: const Icon(Icons.access_time),
-                      label: Text(selectedTime == null
-                          ? "Select Time"
-                          : selectedTime!.format(context)),
+                      onPressed: isSaving ? null : saveAppointment,
+                      icon: isSaving
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.save),
+                      label: Text(isSaving ? "Saving..." : "Save Appointment"),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: isSaving ? null : saveAppointment,
-                  icon: isSaving
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.save),
-                  label:
-                      Text(isSaving ? "Saving..." : "Save Appointment"),
-                ),
-              )
-            ],
-          ),
+            ),
+            const SizedBox(height: 30),
+            const Text(
+              "Patient's Appointments",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 10),
+            loadingAppointments
+                ? const Center(child: CircularProgressIndicator())
+                : patientAppointments.isEmpty
+                    ? const Text("No appointments found")
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: patientAppointments.length,
+                        itemBuilder: (context, index) {
+                          final appt = patientAppointments[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            child: ListTile(
+                              leading: const Icon(Icons.event_note),
+                              title: Text(appt['title'] ?? "Untitled"),
+                              subtitle: Text(
+                                  "${appt['date']} • ${appt['time']} "),
+                              trailing: Text(
+                                appt['type'] ?? "",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+          ],
         ),
       ),
     );
   }
 }
+

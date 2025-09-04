@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
+import 'package:medical_app/services/notification_service.dart';
 
 class AppointmentsPage extends StatefulWidget {
   final String patientID;
@@ -29,7 +30,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
   }
 
   Future<void> _fetchAppointments() async {
-    final url = Uri.parse("http://197.232.14.151:3030/api/appointments/${widget.patientID}");
+    final url = Uri.parse("http://197.232.14.151:3030/api/userAppointments/${widget.patientID}");
     try {
       final response = await http.get(url);
 
@@ -48,9 +49,9 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
           );
 
           Map<String, String> details = {
-            "purpose": appt['purpose'] ?? '',
+            "purpose": appt['title'] ?? '',
             "time": appt['time'] ?? '',
-            "urgency": appt['urgency'] ?? '',
+            "urgency": appt['doctorName'] ?? '',
           };
 
           fetchedAppointments.putIfAbsent(dateKey, () => []);
@@ -135,7 +136,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                           leading: const Icon(Icons.calendar_today, color: const Color.fromARGB(255, 8, 217, 207),),
                           title: Text(appt["purpose"] ?? ""),
                           subtitle: Text(
-                            "Time: ${appt["time"] ?? ""}\nUrgency: ${appt["urgency"] ?? ""}",
+                            "Time: ${appt["time"] ?? ""}\nDr Name: ${appt["urgency"] ?? ""}",
                           ),
                         ),
                       );
