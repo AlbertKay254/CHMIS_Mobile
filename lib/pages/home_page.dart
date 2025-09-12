@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
     if (_selectedIndex == 0) {
       return _buildHomeBody();
     } else if (_selectedIndex == 1) {
-      return TelemedicinePage();
+      return TelemedicinePage(doctorName: '', staffID: '',);
     } else {
       return OptionPage();
     }
@@ -228,7 +228,7 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: StatCard(
                   icon: Icons.note,
-                  title: "Today's Notes",
+                  title: "Notes",
                   value: todaysNotesCount > 0
                       ? todaysNotesCount.toString()
                       : "0", 
@@ -321,9 +321,9 @@ class _HomePageState extends State<HomePage> {
                           vitals!['hypertensionStatus']),
                       buildInfoText(
                           "Diabetic Status: ", vitals!['diabeticStatus']),
-                      buildInfoText("Notes: ", vitals!['notes']),
-                      buildInfoText("Next Appointment: ",
-                          vitals!['nextAppointment'] ?? 'N/A'),
+                      //buildInfoText("Notes: ", vitals!['notes']),
+                      //buildInfoText("Next Appointment: ",
+                         // vitals!['nextAppointment'] ?? 'N/A'),
                     ],
                   ),
           ),
@@ -430,7 +430,7 @@ class _HomePageState extends State<HomePage> {
               );
             },
             child: CategoryCard(
-              categoryName: 'Appointments',
+              categoryName: 'My Calendar',
               iconImagePath: 'lib/icons/schedule.png',
             ),
           ),

@@ -2,32 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Telemedicine App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const TelemedicinePage(),
-    );
-  }
-}
+import 'package:flutter/services.dart';
 
 class TelemedicinePage extends StatefulWidget {
-  const TelemedicinePage({Key? key}) : super(key: key);
+  final String doctorName;
+  final String staffID;
+
+  const TelemedicinePage({
+    super.key,
+    required this.doctorName,
+    required this.staffID,
+  });
 
   @override
-  _TelemedicinePageState createState() => _TelemedicinePageState();
+  State<TelemedicinePage> createState() => _TelemedicinePageState();
 }
 
 class _TelemedicinePageState extends State<TelemedicinePage> {
@@ -41,6 +29,7 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
     _fetchUsers();
   }
 
+  /// Fetch patients from backend
   Future<void> _fetchUsers() async {
     setState(() {
       isLoading = true;
@@ -60,7 +49,8 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
         });
       } else {
         setState(() {
-          errorMessage = 'Failed to load users. Status code: ${response.statusCode}';
+          errorMessage =
+              'Failed to load users. Status code: ${response.statusCode}';
           isLoading = false;
         });
       }
@@ -72,23 +62,25 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
     }
   }
 
-  Future<String?> _createWherebyMeeting(String name, String patientId) async {
+  /// Create meeting via backend
+  Future<Map<String, dynamic>?> _createWherebyMeeting(
+      String patientName, String patientID, String email) async {
     try {
-      // In a real implementation, this would call your backend API
-      // which uses your Whereby API key to create a meeting
       final response = await http.post(
         Uri.parse('http://197.232.14.151:3030/api/create-meeting'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'patientName': name,
-          'patientId': patientId,
-          'duration': 60, // Meeting duration in minutes
+          'doctorName': widget.doctorName,
+          'staffID': widget.staffID,
+          'patientName': patientName,
+          'patientID': patientID,
+          'email': email,
+          'duration': 60,
         }),
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['meetingUrl'];
+        return json.decode(response.body);
       } else {
         throw Exception('Failed to create meeting: ${response.statusCode}');
       }
@@ -100,19 +92,34 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
     }
   }
 
+  /// Open external URL
+  Future<void> _openMeetingUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $url';
+    }
+  }
+
+  /// Start a call and show links
   void _startVideoCall(Map<String, dynamic> user) async {
     setState(() {
       isLoading = true;
     });
 
     try {
-      final meetingUrl = await _createWherebyMeeting(user['name'], user['patientID']);
-      
-      if (meetingUrl != null && await canLaunch(meetingUrl)) {
-        await launch(meetingUrl);
+      final meetingData = await _createWherebyMeeting(
+        user['name'],
+        user['patientID'],
+        user['email'],
+      );
+
+      if (meetingData != null &&
+          meetingData['hostUrl'] != null &&
+          meetingData['meetingUrl'] != null) {
+        _showMeetingLinks(meetingData['hostUrl'], meetingData['meetingUrl']);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not launch video call')),
+          const SnackBar(content: Text('Meeting data incomplete')),
         );
       }
     } catch (e) {
@@ -126,6 +133,54 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
     }
   }
 
+  /// Show both doctor + patient links in a dialog
+  void _showMeetingLinks(String hostUrl, String meetingUrl) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Meeting Created'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SelectableText(
+              'Doctor (Host) Link:\n$hostUrl',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: SelectableText('Patient Link:\n$meetingUrl'),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: meetingUrl));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Patient link copied')),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => _openMeetingUrl(hostUrl),
+            child: const Text('Join as Doctor'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Bottom sheet with patient list
   void _showUserList() {
     showModalBottomSheet(
       context: context,
@@ -195,10 +250,10 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
             ),
           ),
           title: Text(user['name']),
-          subtitle: Text('ID: ${user['patientID']}'),
+          subtitle: Text('${user['email']} | ID: ${user['patientID']}'),
           trailing: const Icon(Icons.video_call),
           onTap: () {
-            Navigator.pop(context); // Close the bottom sheet
+            Navigator.pop(context);
             _startVideoCall(user);
           },
         );
@@ -210,7 +265,7 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Telemedicine'),
+        title: Text('Telemedicine - Dr. ${widget.doctorName}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -223,9 +278,12 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Connect with a Doctor',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Text(
+              'Dr. ${widget.doctorName} (Staff ID: ${widget.staffID})',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 16),
             const Text(

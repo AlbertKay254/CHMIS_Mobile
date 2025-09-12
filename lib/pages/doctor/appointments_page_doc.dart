@@ -106,6 +106,8 @@ class _AppointmentsPageDocState extends State<AppointmentsPageDoc> {
     }
   }
 
+  
+
   // appointments for the selected day
   List<dynamic> get selectedAppointments {
     if (_selectedDay == null) return [];

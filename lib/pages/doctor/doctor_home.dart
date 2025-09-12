@@ -99,8 +99,11 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     } else if (_selectedIndex == 1) {
       return const DashboardsPage();
     } else if (_selectedIndex == 2) {
-      return const TelemedicinePage();
-    } else {
+  return TelemedicinePage(
+    doctorName: widget.doctorName ?? "",
+    staffID: widget.staffID ?? "",
+  );
+} else {
       return const OptionPage();
     }
   }
