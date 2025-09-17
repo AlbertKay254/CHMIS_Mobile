@@ -1,134 +1,118 @@
-import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:file_picker/file_picker.dart';
 
 class LabResultsPage extends StatefulWidget {
   final String patientID;
 
-  const LabResultsPage({super.key, required this.patientID});
+  const LabResultsPage({Key? key, required this.patientID}) : super(key: key);
 
   @override
-  _LabResultsPageState createState() => _LabResultsPageState();
+  State<LabResultsPage> createState() => _LabResultsPageState();
 }
 
 class _LabResultsPageState extends State<LabResultsPage> {
+  List<dynamic> labRequests = [];
   bool isLoading = true;
-  String? errorMessage;
-  List<dynamic> labResults = [];
 
   @override
   void initState() {
     super.initState();
-    fetchLabResults();
+    fetchLabRequests();
   }
 
-  Future<void> fetchLabResults() async {
-    final url =
-        'http://197.232.14.151:3030/api/labresults/${widget.patientID}';
+  Future<void> fetchLabRequests() async {
+    final url = Uri.parse(
+        "http://197.232.14.151:3030/api/labResults/${widget.patientID}");
 
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-
-        // Handle both single object and array responses
-        if (data is List) {
-          labResults = data;
-        } else if (data is Map) {
-          labResults = [data];
-        }
-
         setState(() {
+          labRequests = json.decode(response.body);
           isLoading = false;
         });
       } else {
-        setState(() {
-          errorMessage =
-              'Failed to load lab results (Status: ${response.statusCode})';
-          isLoading = false;
-        });
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No lab requests found")),
+        );
       }
     } catch (e) {
-      setState(() {
-        errorMessage = 'Error fetching lab results: $e';
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error fetching lab requests: $e")),
+      );
     }
   }
 
-  Widget _buildLabResultCard(Map<String, dynamic> result) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInfoRow("Lab Test", result['labtest']),
-            _buildInfoRow("Price", "Ksh ${result['price']}"),
-            _buildInfoRow("Request Time", result['RequestTime']),
-            _buildInfoRow("Sample", result['SampleName']),
-            _buildInfoRow("Time Collected", result['time collected'] ?? "Not collected"),
-            _buildInfoRow("Results Verified", result['resultsVerifiedTime'] ?? "Not verified"),
-            _buildInfoRow("Approved Time", result['ApprovedTime'] ?? "Not approved"),
-            _buildStatusBadge(result['TestStatus']),
-          ],
-        ),
-      ),
-    );
-  }
+  Future<void> uploadResult(Map<String, dynamic> req) async {
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['jpg', 'png', 'pdf']);
 
-  Widget _buildInfoRow(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          Text(
-            "$label: ",
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Expanded(
-            child: Text(
-              value ?? "N/A",
-              style: const TextStyle(color: Colors.black87),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    if (result != null) {
+      File file = File(result.files.single.path!);
 
-  Widget _buildStatusBadge(String status) {
-    Color color;
-    switch (status.toLowerCase()) {
-      case "requested":
-        color = Colors.orange;
-        break;
-      case "completed":
-        color = Colors.green;
-        break;
-      case "cancelled":
-        color = Colors.red;
-        break;
-      default:
-        color = Colors.grey;
+      var request = http.MultipartRequest(
+        "POST",
+        Uri.parse("http://197.232.14.151:3030/api/uploadLabResult"),
+      );
+
+      // attach file
+      request.files.add(await http.MultipartFile.fromPath("file", file.path));
+
+      // attach fields
+      request.fields['labID'] = req['labID'].toString();
+      request.fields['testName'] = req['testName'] ?? '';
+      request.fields['patientID'] = req['patientID'] ?? '';
+      request.fields['patientName'] = req['patientName'] ?? '';
+      request.fields['staffID'] = req['staffID'] ?? '';
+      request.fields['doctorName'] = req['doctorName'] ?? '';
+
+      var res = await request.send();
+
+      if (res.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("✅ Result uploaded successfully")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("❌ Upload failed (code ${res.statusCode})")),
+        );
+      }
     }
+  }
 
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(color: color, fontWeight: FontWeight.w600),
-      ),
+  void showUploadDialog(Map<String, dynamic> req) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          height: 180,
+          child: Column(
+            children: [
+              const Text(
+                "Upload Your Lab Result",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () => uploadResult(req),
+                icon: const Icon(Icons.upload_file),
+                label: const Text("Upload Image or PDF"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -136,17 +120,38 @@ class _LabResultsPageState extends State<LabResultsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Lab Results"),
-        backgroundColor: const Color.fromARGB(255, 50, 219, 205),
+        title: const Text("Lab Requests"),
+        backgroundColor: const Color.fromARGB(255, 246, 250, 255),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : labResults.isEmpty
-              ? const Center(child: Text("No lab results found."))
+          : labRequests.isEmpty
+              ? const Center(child: Text("No lab requests available"))
               : ListView.builder(
-                  itemCount: labResults.length,
+                  padding: const EdgeInsets.all(10),
+                  itemCount: labRequests.length,
                   itemBuilder: (context, index) {
-                    return _buildLabResultCard(labResults[index]);
+                    final req = labRequests[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                      child: ListTile(
+                        leading: const Icon(Icons.science, color: Color.fromARGB(255, 58, 143, 183)),
+                        title: Text(
+                          req['testName'] ?? 'Unknown Test',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        subtitle: Text(
+                          "Doctor: ${req['doctorName'] ?? 'N/A'}\nUrgency: ${req['urgency'] ?? 'Normal'}",
+                        ),
+                        trailing: const Icon(Icons.upload_file, color: Color.fromARGB(255, 58, 143, 183)),
+                        onTap: () => showUploadDialog(req),
+                      ),
+                    );
                   },
                 ),
     );

@@ -12,6 +12,7 @@ import 'package:medical_app/pages/notifications_page.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:medical_app/pages/doctor/doctor_notes.dart';
 import 'package:medical_app/pages/doctor/prescriptions_page.dart';
+import 'package:medical_app/pages/doctor/lab_request_page.dart';
 import 'package:http/http.dart' as http;
 
 
@@ -230,6 +231,16 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             child: CategoryCard(
                 categoryName: 'Prescription',
                 iconImagePath: 'lib/icons/pharmacy.png'),
+          ),
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => 
+               LabRequestsPage(staffID: widget.staffID, doctorName: widget.doctorName)),
+            ),
+            child: CategoryCard(
+                categoryName: 'Lab Request',
+                iconImagePath: 'lib/icons/labRequest.png'),
           ),
           GestureDetector(
             onTap: () => Navigator.push(
