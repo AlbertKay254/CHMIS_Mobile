@@ -8,6 +8,7 @@ import 'package:medical_app/pages/diagnosis_page.dart';
 //import 'package:medical_app/pages/doctor/doctor_home.dart';
 import 'package:medical_app/pages/loading_screen..dart';
 import 'package:medical_app/pages/prescription_page.dart';
+import 'package:medical_app/pages/user_notes.dart';
 import 'package:medical_app/util/category_card.dart';
 import 'package:medical_app/util/doctor_card.dart';
 import 'package:medical_app/pages/billing_page.dart';
@@ -41,7 +42,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadData();
-    
   }
 
   Future<void> _loadData() async {
@@ -77,32 +77,26 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-    Future<int> fetchTodaysNotesCount(String patientID) async {
-      final url = Uri.parse('http://197.232.14.151:3030/api/notes/today/$patientID');
-      final response = await http.get(url);
+  Future<int> fetchTodaysNotesCount(String patientID) async {
+    final url = Uri.parse('http://197.232.14.151:3030/api/notes/today/$patientID');
+    final response = await http.get(url);
 
-      print("🔵 Status: ${response.statusCode}");
-      print("🔵 Raw body: ${response.body}");
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        print("🟢 Decoded data: $data");
-
-        if (data is Map<String, dynamic> && data.containsKey('count')) {
-          final count = data['count'];
-          print("🟡 Extracted count: $count (${count.runtimeType})");
-
-          if (count is int) {
-            return count;
-          } else if (count is String) {
-            return int.tryParse(count) ?? 0;
-          }
+      if (data is Map<String, dynamic> && data.containsKey('count')) {
+        final count = data['count'];
+        if (count is int) {
+          return count;
+        } else if (count is String) {
+          return int.tryParse(count) ?? 0;
         }
-        return 0; // unexpected structure
-      } else {
-        return 0; // non-200
       }
+      return 0;
+    } else {
+      return 0;
     }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -114,7 +108,7 @@ class _HomePageState extends State<HomePage> {
     if (_selectedIndex == 0) {
       return _buildHomeBody();
     } else if (_selectedIndex == 1) {
-      return TelemedicinePage(doctorName: '', staffID: '',);
+      return TelemedicinePage();
     } else {
       return OptionPage();
     }
@@ -129,12 +123,49 @@ class _HomePageState extends State<HomePage> {
         children: [
           appbar(),
           const SizedBox(height: 25),
-          card(), // welcome card
+          card(),
           const SizedBox(height: 20),
+
+          // --- Quick Actions label ---
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Quick Actions",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[900],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
           statCard(),
           const SizedBox(height: 20),
+
+          // --- Services label ---
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Services",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[900],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
           categorycard(),
           const SizedBox(height: 25),
+
           quickinfo(),
           doctorslist(),
           const SizedBox(height: 20),
@@ -168,79 +199,76 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 20),
-          //chatbutton(context),
-          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-    Padding statCard() {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: SizedBox(
-          height: 120,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          AppointmentsPage(patientID: widget.patientID),
-                    ),
-                  );
-                },
-                child: const StatCard(
-                  icon: Icons.event,
-                  title: "Upcoming Events",
-                  value: "3", // <-- replace with dynamic data later
-                  color: Colors.deepPurple,
-                ),
+  Padding statCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: SizedBox(
+        height: 120,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        AppointmentsPage(patientID: widget.patientID),
+                  ),
+                );
+              },
+              child: const StatCard(
+                icon: Icons.event,
+                title: "Upcoming Events",
+                value: "3",
+                color: Colors.deepPurple,
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NotificationsPage(),
-                    ),
-                  );
-                },
-                child: const StatCard(
-                  icon: Icons.notifications,
-                  title: "Notifications",
-                  value: "5", // <-- replace with dynamic data later
-                  color: Colors.teal,
-                ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NotificationsPage(),
+                  ),
+                );
+              },
+              child: const StatCard(
+                icon: Icons.notifications,
+                title: "Notifications",
+                value: "5",
+                color: Colors.teal,
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          PatientNotesPage(patientID: widget.patientID),
-                    ),
-                  );
-                },
-                child: StatCard(
-                  icon: Icons.note,
-                  title: "Notes",
-                  value: todaysNotesCount > 0
-                      ? todaysNotesCount.toString()
-                      : "0", 
-                  color: Colors.orange,
-                ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        PatientNotesPage(patientID: widget.patientID),
+                  ),
+                );
+              },
+              child: StatCard(
+                icon: Icons.note,
+                title: "Doctor Notes",
+                value: todaysNotesCount > 0
+                    ? todaysNotesCount.toString()
+                    : "0",
+                color: Colors.orange,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
-    }
-
+      ),
+    );
+  }
 
   // bottom navigation bar
   @override
@@ -321,9 +349,6 @@ class _HomePageState extends State<HomePage> {
                           vitals!['hypertensionStatus']),
                       buildInfoText(
                           "Diabetic Status: ", vitals!['diabeticStatus']),
-                      //buildInfoText("Notes: ", vitals!['notes']),
-                      //buildInfoText("Next Appointment: ",
-                         // vitals!['nextAppointment'] ?? 'N/A'),
                     ],
                   ),
           ),
@@ -356,32 +381,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  // Padding chatbutton(BuildContext context) {
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(horizontal: 25.0),
-  //     child: ElevatedButton.icon(
-  //       onPressed: () {
-  //         Navigator.push(
-  //           context,
-  //           MaterialPageRoute(builder: (context) => const ChatPage()),
-  //         );
-  //       },
-  //       icon: const Icon(Icons.chat_bubble_outline),
-  //       label: const Text("Chat"),
-  //       style: ElevatedButton.styleFrom(
-  //         backgroundColor: const Color.fromARGB(237, 255, 249, 139),
-  //         foregroundColor: const Color.fromARGB(255, 55, 55, 55),
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(12),
-  //         ),
-  //         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-  //         textStyle:
-  //             const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Container categorycard() {
     return Container(
@@ -452,6 +451,21 @@ class _HomePageState extends State<HomePage> {
             onTap: () {
               Navigator.push(
                 context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      UserNotesPage(patientID: widget.patientID),
+                ),
+              );
+            },
+            child: CategoryCard(
+              categoryName: 'My Notes',
+              iconImagePath: 'lib/icons/notes2.png',
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
                 MaterialPageRoute(builder: (context) => BillingPage()),
               );
             },
@@ -461,26 +475,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Padding searchbar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 202, 202, 202),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const TextField(
-          decoration: InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            border: InputBorder.none,
-            hintText: 'How may we help you?',
-          ),
-        ),
       ),
     );
   }

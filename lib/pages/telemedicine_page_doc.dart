@@ -1,19 +1,26 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 
-class TelemedicinePage extends StatefulWidget {
-  const TelemedicinePage({super.key});
+class TelemedicinePageDoc extends StatefulWidget {
+  final String doctorName;
+  final String staffID;
+
+  const TelemedicinePageDoc({
+    super.key,
+    required this.doctorName,
+    required this.staffID,
+    // required String patientID,
+    // required String userName,
+  });
 
   @override
-  State<TelemedicinePage> createState() => _TelemedicinePageState();
+  State<TelemedicinePageDoc> createState() => _TelemedicinePageDocState();
 }
 
-class _TelemedicinePageState extends State<TelemedicinePage> {
+class _TelemedicinePageDocState extends State<TelemedicinePageDoc> {
   List<dynamic> users = [];
   bool isLoading = false;
   String? errorMessage;
@@ -65,6 +72,8 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
         Uri.parse('http://197.232.14.151:3030/api/create-meeting'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
+          'doctorName': widget.doctorName,
+          'staffID': widget.staffID,
           'patientName': patientName,
           'patientID': patientID,
           'email': email,
@@ -183,13 +192,14 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
           height: MediaQuery.of(context).size.height * 0.8,
           child: Column(
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Text(
                   'Select a Patient',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
@@ -257,7 +267,7 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Telemedicine'),
+        title: Text('Telemedicine - Dr. ${widget.doctorName}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -270,6 +280,14 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text(
+              'Dr. ${widget.doctorName} (Staff ID: ${widget.staffID})',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
             const Text(
               'Book a video consultation with a certified medical professional from the comfort of your home.',
               style: TextStyle(fontSize: 16),
@@ -289,7 +307,7 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
               icon: const Icon(Icons.chat),
               label: const Text('Chat with a Doctor'),
               onPressed: () {
-                // Implement chat logic
+                // TODO: Implement chat logic
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -301,7 +319,7 @@ class _TelemedicinePageState extends State<TelemedicinePage> {
               icon: const Icon(Icons.history),
               label: const Text('View Consultation History'),
               onPressed: () {
-                // Implement history logic
+                // TODO: Implement history logic
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),

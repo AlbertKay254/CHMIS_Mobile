@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:medical_app/pages/doctor/outpatient_page.dart';
 import 'package:medical_app/pages/doctor/inpatient_page.dart';
 import 'package:medical_app/util/category_card.dart';
-import 'package:medical_app/pages/telemedicine_page.dart';
+import 'package:medical_app/pages/telemedicine_page_doc.dart';
 import 'package:medical_app/pages/option_page.dart';
 import 'package:medical_app/pages/doctor/dashboard_page.dart';
 import 'package:medical_app/pages/doctor/appointments_page_doc.dart';
@@ -100,7 +100,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     } else if (_selectedIndex == 1) {
       return const DashboardsPage();
     } else if (_selectedIndex == 2) {
-  return TelemedicinePage(
+  return TelemedicinePageDoc(
     doctorName: widget.doctorName ?? "",
     staffID: widget.staffID ?? "",
   );

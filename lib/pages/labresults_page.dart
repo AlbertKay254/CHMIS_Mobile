@@ -231,7 +231,7 @@ class _LabResultsPageState extends State<LabResultsPage> {
                 icon: const Icon(Icons.upload_file),
                 label: const Text("Upload Image or PDF"),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
+                  backgroundColor: const Color.fromARGB(255, 58, 150, 183),
                   foregroundColor: Colors.white,
                 ),
               ),
@@ -321,7 +321,7 @@ class _LabResultsPageState extends State<LabResultsPage> {
                             ),
                             elevation: 4,
                             child: ListTile(
-                              leading: Icon(icon, color: Colors.deepPurple),
+                              leading: Icon(icon, color: Colors.blue),
                               title: Text(
                                 result['testName'] ?? 'Unknown Test',
                                 style: const TextStyle(
