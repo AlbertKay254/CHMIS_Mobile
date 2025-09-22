@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:medical_app/pages/login_page.dart';
 import 'package:medical_app/pages/notifications_page.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:medical_app/pages/profile_page.dart'; // <-- new import
+import 'package:medical_app/pages/doctor/profile_page_doc.dart'; // <-- new import
 
-class OptionPage extends StatelessWidget {
-  const OptionPage({Key? key, required String patientID, required String userName}) : super(key: key);
+class OptionPageDoc extends StatelessWidget {
+  final String doctorName;
+  final String staffID;
+
+  const OptionPageDoc({
+    Key? key,
+    required this.doctorName,
+    required this.staffID,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +23,12 @@ class OptionPage extends StatelessWidget {
         'title': 'Profile',
         'action': () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ProfilePage()),
+            MaterialPageRoute(
+              builder: (_) => ProfilePageDoc(
+                doctorName: doctorName,
+                staffID: staffID,
+              ),
+            ),
           );
         },
       },

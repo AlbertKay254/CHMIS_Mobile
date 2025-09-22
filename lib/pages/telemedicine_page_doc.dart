@@ -12,8 +12,6 @@ class TelemedicinePageDoc extends StatefulWidget {
     super.key,
     required this.doctorName,
     required this.staffID,
-    // required String patientID,
-    // required String userName,
   });
 
   @override
@@ -102,11 +100,32 @@ class _TelemedicinePageDocState extends State<TelemedicinePageDoc> {
     }
   }
 
+  /// Show a blocking loading dialog
+  void _showLoadingDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        backgroundColor: const Color.fromARGB(255, 234, 255, 255),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 20),
+              Text(message, style: const TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Start a call and show links
   void _startVideoCall(Map<String, dynamic> user) async {
-    setState(() {
-      isLoading = true;
-    });
+    _showLoadingDialog("Creating meeting, please wait...");
 
     try {
       final meetingData = await _createWherebyMeeting(
@@ -114,6 +133,8 @@ class _TelemedicinePageDocState extends State<TelemedicinePageDoc> {
         user['patientID'],
         user['email'],
       );
+
+      Navigator.pop(context); // close loading dialog
 
       if (meetingData != null &&
           meetingData['hostUrl'] != null &&
@@ -125,13 +146,10 @@ class _TelemedicinePageDocState extends State<TelemedicinePageDoc> {
         );
       }
     } catch (e) {
+      Navigator.pop(context); // close loading dialog on error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error starting video call: $e')),
       );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 

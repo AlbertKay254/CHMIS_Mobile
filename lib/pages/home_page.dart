@@ -110,7 +110,10 @@ class _HomePageState extends State<HomePage> {
     } else if (_selectedIndex == 1) {
       return TelemedicinePage();
     } else {
-      return OptionPage();
+      return OptionPage(
+        patientID: widget.patientID,
+        userName: widget.userName,
+      );
     }
   }
 
