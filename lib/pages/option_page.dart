@@ -5,7 +5,14 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:medical_app/pages/profile_page.dart'; // <-- new import
 
 class OptionPage extends StatelessWidget {
-  const OptionPage({Key? key, required String patientID, required String userName}) : super(key: key);
+  final String patientID;
+  final String userName;
+
+  const OptionPage({
+    Key? key,
+    required this.patientID,
+    required this.userName,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +23,12 @@ class OptionPage extends StatelessWidget {
         'title': 'Profile',
         'action': () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ProfilePage()),
+            MaterialPageRoute(
+              builder: (_) => ProfilePage(
+                patientID: patientID,
+                userName: userName,
+              ),
+            ),
           );
         },
       },

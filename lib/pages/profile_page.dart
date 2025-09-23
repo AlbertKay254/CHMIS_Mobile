@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:path/path.dart' as path;
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  final String patientID;
+  final String userName;
+
+  const ProfilePage({Key? key, required this.patientID, required this.userName})
+      : super(key: key);
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -11,15 +18,72 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
-
-  // Example initial data (you will probably load this from backend)
-  String name = "John Doe";
-  String department = "Telemedicine";
-  String staffID = "DOC12345";
-  String phone = "+254700000000";
-  File? _profileImage;
-
   final ImagePicker _picker = ImagePicker();
+
+  String name = "";
+  String email = "";
+  String patientID = "";
+  File? _profileImage;
+  bool _isLoading = true;
+  String _errorMessage = "";
+  String _profileImageUrl = "";
+
+  @override
+  void initState() {
+    super.initState();
+    patientID = widget.patientID;
+    _fetchPatientData();
+    _fetchPatientProfile();
+  }
+
+  Future<void> _fetchPatientData() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://197.232.14.151:3030/api/userInfo/$patientID'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is List && data.isNotEmpty) {
+          final patient = data[0];
+          setState(() {
+            patientID = patient['patientID'] ?? '';
+            name = patient['name'] ?? '';
+            email = patient['email'] ?? '';
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Failed to load patient data';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Error: $e';
+      });
+    }
+  }
+
+  Future<void> _fetchPatientProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://197.232.14.151:3030/api/patientProfile/$patientID'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _profileImageUrl =
+              'http://197.232.14.151:3030/uploads/patient_profiles/${data['filePath']}';
+        });
+      }
+    } catch (e) {
+      print('Error fetching profile image: $e');
+    }
+  }
 
   Future<void> _pickImage() async {
     final pickedFile =
@@ -28,124 +92,149 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _profileImage = File(pickedFile.path);
       });
+      await _uploadProfileImage();
+      _fetchPatientProfile();
     }
   }
 
-  void _saveProfile() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+  Future<void> _uploadProfileImage() async {
+    if (_profileImage == null) return;
 
-      // TODO: Send updated data + profile photo to backend
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://197.232.14.151:3030/api/uploadPatientProfile'),
+      );
+
+      request.fields['patientID'] = patientID;
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'profileImage',
+          _profileImage!.path,
+          filename: path.basename(_profileImage!.path),
+        ),
+      );
+
+      var response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      try {
+        final jsonResponse = json.decode(responseBody);
+
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Profile picture updated successfully!")),
+          );
+          setState(() {
+            _profileImageUrl =
+                'http://197.232.14.151:3030/uploads/patient_profiles/${jsonResponse['filePath']}';
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text("Failed: ${jsonResponse['error'] ?? 'Unknown'}")),
+          );
+        }
+      } catch (e) {
+        print("Upload raw response: $responseBody");
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profile updated successfully!")),
+        SnackBar(content: Text("Error uploading: $e")),
       );
     }
+  }
+
+  Widget _buildProfileImage() {
+    if (_profileImage == null && _profileImageUrl.isEmpty) {
+      String initials = name.isNotEmpty
+          ? name.trim().split(" ").map((e) => e[0]).take(2).join().toUpperCase()
+          : "?";
+
+      return CircleAvatar(
+        radius: 60,
+        backgroundColor: const Color(0xFF161d63),
+        child: Text(initials,
+            style: const TextStyle(fontSize: 40, color: Colors.white)),
+      );
+    }
+
+    if (_profileImage != null) {
+      return CircleAvatar(radius: 60, backgroundImage: FileImage(_profileImage!));
+    }
+
+    return CircleAvatar(
+      radius: 60,
+      backgroundColor: Colors.grey.shade200,
+      backgroundImage: NetworkImage(_profileImageUrl),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Profile"),
-        backgroundColor: const Color.fromARGB(255, 20, 201, 207),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // Profile photo
-              Center(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundImage: _profileImage != null
-                          ? FileImage(_profileImage!)
-                          : const AssetImage("assets/profile_placeholder.png")
-                              as ImageProvider,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: InkWell(
-                        onTap: _pickImage,
-                        child: const CircleAvatar(
-                          backgroundColor: Colors.white,
-                          radius: 20,
-                          child: Icon(Icons.camera_alt,
-                              color: Color(0xFF161d63)),
+      appBar: AppBar(title: const Text("My Profile"), backgroundColor: Colors.teal),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage.isNotEmpty
+              ? Center(child: Text(_errorMessage))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Stack(
+                            children: [
+                              _buildProfileImage(),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: InkWell(
+                                  onTap: _pickImage,
+                                  child: const CircleAvatar(
+                                    backgroundColor: Colors.white,
+                                    radius: 20,
+                                    child: Icon(Icons.camera_alt,
+                                        color: Colors.teal),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 24),
+                        TextFormField(
+                          initialValue: name,
+                          readOnly: true,
+                          decoration: const InputDecoration(
+                            labelText: "Name",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          initialValue: email,
+                          readOnly: true,
+                          decoration: const InputDecoration(
+                            labelText: "Email",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          initialValue: patientID,
+                          readOnly: true,
+                          decoration: const InputDecoration(
+                            labelText: "Patient ID",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              // Name
-              TextFormField(
-                initialValue: name,
-                decoration: const InputDecoration(
-                  labelText: "Name",
-                  border: OutlineInputBorder(),
-                ),
-                onSaved: (val) => name = val ?? "",
-                validator: (val) =>
-                    val == null || val.isEmpty ? "Enter your name" : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Department
-              TextFormField(
-                initialValue: department,
-                decoration: const InputDecoration(
-                  labelText: "Department",
-                  border: OutlineInputBorder(),
-                ),
-                onSaved: (val) => department = val ?? "",
-              ),
-              const SizedBox(height: 16),
-
-              // Staff ID
-              TextFormField(
-                initialValue: staffID,
-                decoration: const InputDecoration(
-                  labelText: "Staff ID",
-                  border: OutlineInputBorder(),
-                ),
-                onSaved: (val) => staffID = val ?? "",
-              ),
-              const SizedBox(height: 16),
-
-              // Phone number
-              TextFormField(
-                initialValue: phone,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: "Phone Number",
-                  border: OutlineInputBorder(),
-                ),
-                onSaved: (val) => phone = val ?? "",
-              ),
-              const SizedBox(height: 24),
-
-              ElevatedButton.icon(
-                icon: const Icon(Icons.save),
-                label: const Text("Save Changes"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF161d63),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 32, vertical: 14),
-                  textStyle: const TextStyle(fontSize: 16),
-                ),
-                onPressed: _saveProfile,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

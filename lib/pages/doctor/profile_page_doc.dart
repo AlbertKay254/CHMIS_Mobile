@@ -125,19 +125,31 @@ class _ProfilePageDocState extends State<ProfilePageDoc> {
 
       var response = await request.send();
       final responseBody = await response.stream.bytesToString();
-      final jsonResponse = json.decode(responseBody);
 
-      if (response.statusCode == 201) {
+      try {
+        final jsonResponse = json.decode(responseBody);
+
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Profile picture updated successfully!")),
+          );
+
+          setState(() {
+            _profileImageUrl =
+                'http://197.232.14.151:3030/uploads/doctor_profiles/${jsonResponse['filePath']}';
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    "Failed to upload: ${jsonResponse['error'] ?? 'Unknown error'}")),
+          );
+        }
+      } catch (e) {
+        // If parsing fails, show raw response
+        print("Upload raw response: $responseBody");
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profile picture updated successfully!")),
-        );
-        
-        setState(() {
-          _profileImageUrl = 'http://197.232.14.151:3030/uploads/doctor_profiles/${jsonResponse['filePath']}';
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to upload: ${jsonResponse['error']}")),
+          SnackBar(content: Text("Upload failed: Could not parse server response")),
         );
       }
     } catch (e) {
@@ -146,6 +158,7 @@ class _ProfilePageDocState extends State<ProfilePageDoc> {
       );
     }
   }
+
 
   Widget _buildProfileImage() {
   // If no profile image and no uploaded image, show initials
@@ -196,7 +209,7 @@ class _ProfilePageDocState extends State<ProfilePageDoc> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("My Profile"),
-        backgroundColor: const Color.fromARGB(255, 20, 201, 207),
+        backgroundColor: const Color.fromARGB(255, 194, 237, 239),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
