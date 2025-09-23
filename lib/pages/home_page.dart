@@ -3,9 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:medical_app/pages/appointments_page.dart';
-//import 'package:medical_app/pages/chat_page.dart';
 import 'package:medical_app/pages/diagnosis_page.dart';
-//import 'package:medical_app/pages/doctor/doctor_home.dart';
 import 'package:medical_app/pages/loading_screen..dart';
 import 'package:medical_app/pages/prescription_page.dart';
 import 'package:medical_app/pages/user_notes.dart';
@@ -38,10 +36,13 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   int todaysNotesCount = 0;
 
+  String? profileImageUrl;
+
   @override
   void initState() {
     super.initState();
     _loadData();
+    _fetchProfileImage();
   }
 
   Future<void> _loadData() async {
@@ -66,6 +67,31 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _fetchProfileImage() async {
+    final url =
+        Uri.parse("http://197.232.14.151:3030/api/patientProfile/${widget.patientID}");
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data != null &&
+            data is Map<String, dynamic> &&
+            data.containsKey("profileImage") &&
+            data["profileImage"] != null &&
+            data["profileImage"].toString().isNotEmpty) {
+          setState(() {
+            profileImageUrl = data["profileImage"];
+          });
+        }
+      }
+    } catch (e) {
+      setState(() {
+        profileImageUrl = null;
+      });
+    }
+  }
+
   Future<Map<String, dynamic>> fetchVitals(String patientID) async {
     final url = Uri.parse('http://197.232.14.151:3030/api/vitals/$patientID');
     final response = await http.get(url);
@@ -78,7 +104,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<int> fetchTodaysNotesCount(String patientID) async {
-    final url = Uri.parse('http://197.232.14.151:3030/api/notes/today/$patientID');
+    final url =
+        Uri.parse('http://197.232.14.151:3030/api/notes/today/$patientID');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -128,8 +155,6 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 25),
           card(),
           const SizedBox(height: 20),
-
-          // --- Quick Actions label ---
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Align(
@@ -145,11 +170,8 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 10),
-
           statCard(),
           const SizedBox(height: 20),
-
-          // --- Services label ---
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Align(
@@ -165,10 +187,8 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 10),
-
           categorycard(),
           const SizedBox(height: 25),
-
           quickinfo(),
           doctorslist(),
           const SizedBox(height: 20),
@@ -261,9 +281,8 @@ class _HomePageState extends State<HomePage> {
               child: StatCard(
                 icon: Icons.note,
                 title: "Doctor Notes",
-                value: todaysNotesCount > 0
-                    ? todaysNotesCount.toString()
-                    : "0",
+                value:
+                    todaysNotesCount > 0 ? todaysNotesCount.toString() : "0",
                 color: Colors.orange,
               ),
             ),
@@ -273,7 +292,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // bottom navigation bar
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -285,18 +303,9 @@ class _HomePageState extends State<HomePage> {
         selectedItemColor: const Color.fromARGB(255, 4, 84, 88),
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.video_call),
-            label: 'Telemedicine',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Options',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.video_call), label: 'Telemedicine'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Options'),
         ],
       ),
     );
@@ -308,14 +317,10 @@ class _HomePageState extends State<HomePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Doctors List',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-          Text(
-            'See all',
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-          )
+          const Text('Doctors List',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text('See all',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600])),
         ],
       ),
     );
@@ -346,12 +351,9 @@ class _HomePageState extends State<HomePage> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      buildInfoText(
-                          "Encounter Number: ", vitals!['EncounterNo']),
-                      buildInfoText("Hypertension Status: ",
-                          vitals!['hypertensionStatus']),
-                      buildInfoText(
-                          "Diabetic Status: ", vitals!['diabeticStatus']),
+                      buildInfoText("Encounter Number: ", vitals!['EncounterNo']),
+                      buildInfoText("Hypertension Status: ", vitals!['hypertensionStatus']),
+                      buildInfoText("Diabetic Status: ", vitals!['diabeticStatus']),
                     ],
                   ),
           ),
@@ -396,8 +398,7 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      DiagnosisPage(patientID: widget.patientID),
+                  builder: (context) => DiagnosisPage(patientID: widget.patientID),
                 ),
               );
             },
@@ -411,8 +412,7 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      PrescriptionPage(patientID: widget.patientID),
+                  builder: (context) => PrescriptionPage(patientID: widget.patientID),
                 ),
               );
             },
@@ -426,8 +426,7 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      AppointmentsPage(patientID: widget.patientID),
+                  builder: (context) => AppointmentsPage(patientID: widget.patientID),
                 ),
               );
             },
@@ -441,8 +440,7 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        LabResultsPage(patientID: widget.patientID)),
+                    builder: (context) => LabResultsPage(patientID: widget.patientID)),
               );
             },
             child: CategoryCard(
@@ -455,8 +453,7 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      UserNotesPage(patientID: widget.patientID),
+                  builder: (context) => UserNotesPage(patientID: widget.patientID),
                 ),
               );
             },
@@ -506,8 +503,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   const Text(
                     'Welcome to CHMIS Mobile',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
                   const Text(
@@ -541,26 +537,32 @@ class _HomePageState extends State<HomePage> {
   }
 
   Padding appbar() {
+    String initials = widget.userName.isNotEmpty
+        ? widget.userName
+            .trim()
+            .split(" ")
+            .map((e) => e.isNotEmpty ? e[0].toUpperCase() : "")
+            .take(2)
+            .join()
+        : "U";
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0),
+      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Hello,",
-                  style:
-                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text("Hello, ",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               Text(widget.userName,
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.blue[900])),
               const SizedBox(width: 15),
-              const Text("PID,",
-                  style:
-                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text("PID, ",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               Text(widget.patientID,
                   style: TextStyle(
                       fontSize: 20,
@@ -568,6 +570,20 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.blue[900])),
             ],
           ),
+          profileImageUrl != null
+              ? CircleAvatar(
+                  radius: 22,
+                  backgroundImage: NetworkImage(profileImageUrl!),
+                )
+              : CircleAvatar(
+                  radius: 22,
+                  backgroundColor: Colors.blue[900],
+                  child: Text(
+                    initials,
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
         ],
       ),
     );
@@ -611,18 +627,13 @@ class StatCard extends StatelessWidget {
         children: [
           Icon(icon, size: 28, color: Colors.white),
           const Spacer(),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 14, color: Colors.white70),
-          ),
+          Text(title,
+              style: const TextStyle(fontSize: 14, color: Colors.white70)),
           const SizedBox(height: 6),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+                fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
           ),
         ],
       ),
