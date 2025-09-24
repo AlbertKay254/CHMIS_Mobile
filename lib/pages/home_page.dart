@@ -8,14 +8,107 @@ import 'package:medical_app/pages/loading_screen..dart';
 import 'package:medical_app/pages/prescription_page.dart';
 import 'package:medical_app/pages/user_notes.dart';
 import 'package:medical_app/util/category_card.dart';
-import 'package:medical_app/util/doctor_card.dart';
 import 'package:medical_app/pages/billing_page.dart';
 import 'package:medical_app/pages/labresults_page.dart';
 import 'package:medical_app/pages/option_page.dart';
 import 'package:medical_app/pages/telemedicine_page.dart';
 import 'package:medical_app/pages/notifications_page.dart';
 import 'package:medical_app/pages/patients_notes_page.dart';
+import 'package:url_launcher/url_launcher.dart'; // ADD THIS IMPORT
 
+// ------------------ UPDATED DOCTOR CARD WIDGET ------------------
+class DoctorCard extends StatelessWidget {
+  final String doctorImagePath;
+  final String doctorName;
+  final String profession;
+  final bool useNetworkImage;
+
+  const DoctorCard({
+    super.key,
+    required this.doctorImagePath,
+    required this.doctorName,
+    required this.profession,
+    this.useNetworkImage = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+          width: 140,
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 6), // reduced bottom padding
+          margin: const EdgeInsets.only(right: 12),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(193, 95, 232, 234),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 40,
+                backgroundImage: useNetworkImage && doctorImagePath.isNotEmpty
+                    ? NetworkImage(doctorImagePath) as ImageProvider
+                    : AssetImage(doctorImagePath),
+                child: useNetworkImage && doctorImagePath.isEmpty
+                    ? Text(
+                        _getInitials(doctorName),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )
+                    : null,
+              ),
+
+              const SizedBox(height: 12),
+
+              // Doctor Name
+              Text(
+                doctorName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              const SizedBox(height: 6),
+
+              // Profession
+              Text(
+                profession,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: Colors.blue[900],
+                ),
+              ),
+            ],
+          ),
+        );
+
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return "DR";
+    
+    final List<String> nameParts = name.split(' ');
+    if (nameParts.length >= 2) {
+      return '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase();
+    } else if (name.length >= 2) {
+      return name.substring(0, 2).toUpperCase();
+    } else {
+      return name.toUpperCase();
+    }
+  }
+}
+
+// ------------------ UPDATED HOMEPAGE ------------------
 class HomePage extends StatefulWidget {
   final String userName;
   final String patientID;
@@ -35,7 +128,7 @@ class _HomePageState extends State<HomePage> {
   Map<String, dynamic>? vitals;
   int _selectedIndex = 0;
   int todaysNotesCount = 0;
-
+  List<dynamic> doctors = [];
   String? profileImageUrl;
 
   @override
@@ -43,6 +136,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _loadData();
     _fetchProfileImage();
+    _fetchDoctors();
   }
 
   Future<void> _loadData() async {
@@ -68,8 +162,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchProfileImage() async {
-    final url =
-        Uri.parse("http://197.232.14.151:3030/api/patientProfile/${widget.patientID}");
+    final url = Uri.parse("http://197.232.14.151:3030/api/patientProfile/${widget.patientID}");
     try {
       final response = await http.get(url);
 
@@ -92,6 +185,69 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _fetchDoctors() async {
+  final url = Uri.parse("http://197.232.14.151:3030/api/doctorFullList");
+  try {
+    final response = await http.get(url);
+    print('Doctors API Status: ${response.statusCode}'); // Debug line
+    print('Doctors API Response: ${response.body}'); // Debug line
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      
+      // Handle different possible response structures
+      if (data is List) {
+        // Direct list response
+        setState(() {
+          doctors = data;
+        });
+      } else if (data is Map<String, dynamic>) {
+        // Wrapped in an object - try common keys
+        if (data['doctors'] is List) {
+          setState(() {
+            doctors = data['doctors'];
+          });
+        } else if (data['data'] is List) {
+          setState(() {
+            doctors = data['data'];
+          });
+        } else if (data['results'] is List) {
+          setState(() {
+            doctors = data['results'];
+          });
+        } else {
+          // If no common key found, try to extract any list from the map
+          final List<dynamic> foundList = [];
+          data.forEach((key, value) {
+            if (value is List) {
+              foundList.addAll(value);
+            }
+          });
+          setState(() {
+            doctors = foundList;
+          });
+        }
+      } else {
+        setState(() {
+          doctors = [];
+        });
+      }
+      
+      print('Parsed doctors count: ${doctors.length}'); // Debug line
+    } else {
+      print('API Error: ${response.statusCode}');
+      setState(() {
+        doctors = [];
+      });
+    }
+  } catch (e) {
+    print('Error fetching doctors: $e');
+    setState(() {
+      doctors = [];
+    });
+  }
+}
+
   Future<Map<String, dynamic>> fetchVitals(String patientID) async {
     final url = Uri.parse('http://197.232.14.151:3030/api/vitals/$patientID');
     final response = await http.get(url);
@@ -104,8 +260,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<int> fetchTodaysNotesCount(String patientID) async {
-    final url =
-        Uri.parse('http://197.232.14.151:3030/api/notes/today/$patientID');
+    final url = Uri.parse('http://197.232.14.151:3030/api/notes/today/$patientID');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -151,83 +306,156 @@ class _HomePageState extends State<HomePage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          appbar(),
+          _buildAppBar(),
           const SizedBox(height: 25),
-          card(),
+          _buildWelcomeCard(),
           const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Quick Actions",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[900],
-                ),
-              ),
-            ),
-          ),
+          _buildSectionTitle("Quick Actions"),
           const SizedBox(height: 10),
-          statCard(),
+          _buildStatCards(),
           const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Services",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[900],
-                ),
-              ),
-            ),
-          ),
+          _buildSectionTitle("Services"),
           const SizedBox(height: 10),
-          categorycard(),
+          _buildCategoryCards(),
           const SizedBox(height: 25),
-          quickinfo(),
-          doctorslist(),
-          const SizedBox(height: 20),
-          Container(
-            height: 220,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  DoctorCard(
-                    doctorImagePath: 'lib/images/doc1.jpg',
-                    rating: '4.9',
-                    doctorName: 'Dr Julie Kupeka',
-                    profession: 'Gynecologist 7 y.e.',
-                  ),
-                  DoctorCard(
-                    doctorImagePath: 'lib/images/doc2.jpg',
-                    rating: '4.6',
-                    doctorName: 'Dr Eliya Evra',
-                    profession: 'Dentist 3 y.e.',
-                  ),
-                  DoctorCard(
-                    doctorImagePath: 'lib/images/doc3.jpg',
-                    rating: '5.0',
-                    doctorName: 'Dr Erastus K',
-                    profession: 'Brain Surgeon 17 y.e.',
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
+          _buildQuickInfo(),
+          _buildDoctorsListHeader(),
+          const SizedBox(height: 8),
+          _buildDoctorsHorizontalList(),
+          const SizedBox(height: 12),
         ],
       ),
     );
   }
 
-  Padding statCard() {
+  Widget _buildAppBar() {
+    String initials = widget.userName.isNotEmpty
+        ? widget.userName
+            .trim()
+            .split(" ")
+            .map((e) => e.isNotEmpty ? e[0].toUpperCase() : "")
+            .take(2)
+            .join()
+        : "U";
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              const Text("Hello, ",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(widget.userName,
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900])),
+              const SizedBox(width: 15),
+              const Text("PID, ",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(widget.patientID,
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900])),
+            ],
+          ),
+          profileImageUrl != null
+              ? CircleAvatar(
+                  radius: 22,
+                  backgroundImage: NetworkImage(profileImageUrl!),
+                )
+              : CircleAvatar(
+                  radius: 22,
+                  backgroundColor: Colors.blue[900],
+                  child: Text(
+                    initials,
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWelcomeCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 244, 236, 141),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Image.asset(
+              'lib/icons/medical-team.png',
+              height: 100,
+              width: 100,
+              fit: BoxFit.cover,
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Welcome to CHMIS Mobile',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Explore our services and view your medical data',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 244, 236, 141),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 32, 32, 32),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue[900],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCards() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: SizedBox(
@@ -240,8 +468,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        AppointmentsPage(patientID: widget.patientID),
+                    builder: (context) => AppointmentsPage(patientID: widget.patientID),
                   ),
                 );
               },
@@ -250,6 +477,22 @@ class _HomePageState extends State<HomePage> {
                 title: "Upcoming Events",
                 value: "3",
                 color: Colors.deepPurple,
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PatientNotesPage(patientID: widget.patientID),
+                  ),
+                );
+              },
+              child: StatCard(
+                icon: Icons.note,
+                title: "Doctor Notes",
+                value: todaysNotesCount > 0 ? todaysNotesCount.toString() : "0",
+                color: Colors.orange,
               ),
             ),
             GestureDetector(
@@ -268,126 +511,13 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.teal,
               ),
             ),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        PatientNotesPage(patientID: widget.patientID),
-                  ),
-                );
-              },
-              child: StatCard(
-                icon: Icons.note,
-                title: "Doctor Notes",
-                value:
-                    todaysNotesCount > 0 ? todaysNotesCount.toString() : "0",
-                color: Colors.orange,
-              ),
-            ),
           ],
         ),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[300],
-      body: SafeArea(child: _buildBody()),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: const Color.fromARGB(255, 4, 84, 88),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.video_call), label: 'Telemedicine'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Options'),
-        ],
-      ),
-    );
-  }
-
-  Padding doctorslist() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text('Doctors List',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          Text('See all',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600])),
-        ],
-      ),
-    );
-  }
-
-  Padding quickinfo() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SizedBox(
-        width: 320,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
-            color: Colors.blue[50],
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: vitals == null
-                ? const Text("No medical data available.")
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      buildInfoText("Encounter Number: ", vitals!['EncounterNo']),
-                      buildInfoText("Hypertension Status: ", vitals!['hypertensionStatus']),
-                      buildInfoText("Diabetic Status: ", vitals!['diabeticStatus']),
-                    ],
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildInfoText(String label, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
-      child: RichText(
-        text: TextSpan(
-          text: label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 0, 62, 75),
-          ),
-          children: [
-            TextSpan(
-              text: value?.toString() ?? 'N/A',
-              style: const TextStyle(
-                fontWeight: FontWeight.normal,
-                color: Color.fromARGB(255, 0, 144, 141),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Container categorycard() {
+  Widget _buildCategoryCards() {
     return Container(
       height: 100,
       child: ListView(
@@ -479,111 +609,379 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Padding card() {
+  Widget _buildQuickInfo() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 244, 236, 141),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Image.asset(
-              'lib/icons/medical-team.png',
-              height: 100,
-              width: 100,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Welcome to CHMIS Mobile',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Explore our services and view your medical data',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 72, 157, 172),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Get Started!',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 32, 32, 32),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+      padding: const EdgeInsets.all(16.0),
+      child: SizedBox(
+        width: 320,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.0),
+            color: Colors.blue[50],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: const Offset(0, 3),
               ),
-            )
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: vitals == null
+                ? const Text("No medical data available.")
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoText("Encounter Number: ", vitals!['EncounterNo']),
+                      _buildInfoText("Hypertension Status: ", vitals!['hypertensionStatus']),
+                      _buildInfoText("Diabetic Status: ", vitals!['diabeticStatus']),
+                    ],
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoText(String label, dynamic value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: RichText(
+        text: TextSpan(
+          text: label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 0, 62, 75),
+          ),
+          children: [
+            TextSpan(
+              text: value?.toString() ?? 'N/A',
+              style: const TextStyle(
+                fontWeight: FontWeight.normal,
+                color: Color.fromARGB(255, 0, 144, 141),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Padding appbar() {
-    String initials = widget.userName.isNotEmpty
-        ? widget.userName
-            .trim()
-            .split(" ")
-            .map((e) => e.isNotEmpty ? e[0].toUpperCase() : "")
-            .take(2)
-            .join()
-        : "U";
-
+  Widget _buildDoctorsListHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
+          const Text('Doctors List',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color.fromARGB(255, 14, 103, 142))),
+          Text('See all',
+              style: TextStyle(fontSize: 16, color: const Color.fromARGB(255, 55, 55, 55))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDoctorsHorizontalList() {
+    if (doctors.isEmpty) {
+      return Container(
+        height: 200, // Reduced height
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Hello, ",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(widget.userName,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue[900])),
-              const SizedBox(width: 15),
-              const Text("PID, ",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(widget.patientID,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue[900])),
+              Icon(Icons.people_outline, size: 50, color: Colors.grey),
+              SizedBox(height: 10),
+              Text(
+                "No doctors available",
+                style: TextStyle(color: Colors.grey),
+              ),
+              SizedBox(height: 5),
+              Text(
+                "Check your connection and try again",
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
             ],
           ),
-          profileImageUrl != null
-              ? CircleAvatar(
-                  radius: 22,
-                  backgroundImage: NetworkImage(profileImageUrl!),
-                )
-              : CircleAvatar(
-                  radius: 22,
-                  backgroundColor: Colors.blue[900],
-                  child: Text(
-                    initials,
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 200, // CHANGED: Reduced from 220 to 200 to fix overflow
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: doctors.length,
+          itemBuilder: (context, index) {
+            final doctor = doctors[index];
+            return GestureDetector(
+              onTap: () => _showDoctorInfoPopup(context, doctor),
+              child: DoctorCard(
+                doctorImagePath: _getDoctorImageUrl(doctor),
+                doctorName: doctor['doctorName'] ?? 
+                           doctor['name'] ?? 
+                           doctor['fullName'] ?? 
+                           'Unknown Doctor',
+                profession: doctor['department'] ?? 
+                           doctor['specialization'] ?? 
+                           doctor['profession'] ?? 
+                           'General',
+                useNetworkImage: true,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  String _getDoctorImageUrl(Map<String, dynamic> doctor) {
+    final String? filePath = doctor['filePath'];
+    final String staffID = doctor['staffID'] ?? '';
+    
+    if (filePath != null && filePath.isNotEmpty) {
+      return "http://197.232.14.151:3030/uploads/doctor_profiles/$filePath";
+    }
+    
+    // Return empty string to use initials
+    return "";
+  }
+
+  // ADD THESE HELPER METHODS FOR PHONE AND EMAIL
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        throw 'Could not launch $phoneUri';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not make phone call: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _sendEmail(String emailAddress) async {
+    final Uri emailUri = Uri(scheme: 'mailto', path: emailAddress);
+    try {
+      if (await canLaunchUrl(emailUri)) {
+        await launchUrl(emailUri);
+      } else {
+        throw 'Could not launch $emailUri';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not open email: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showDoctorInfoPopup(BuildContext context, Map<String, dynamic> doctor) {
+    final String? phoneNumber = doctor['mobile']?.toString();
+    final String? emailAddress = doctor['email'];
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            doctor['doctorName'] ?? 'Doctor Information',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[900]),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildDoctorAvatar(doctor),
+                const SizedBox(height: 16),
+                _buildInfoRow("Staff ID:", doctor['staffID'] ?? 'N/A'),
+                _buildInfoRow("Department:", doctor['department'] ?? 'N/A'),
+                
+                // Phone number with clickable functionality
+                if (phoneNumber != null && phoneNumber.isNotEmpty && phoneNumber != 'N/A')
+                  _buildClickableInfoRow(
+                    "Mobile:", 
+                    phoneNumber, 
+                    Icons.phone,
+                    () => _makePhoneCall(phoneNumber),
+                    Colors.green,
+                  )
+                else
+                  _buildInfoRow("Mobile:", 'N/A'),
+                
+                // Email with clickable functionality
+                if (emailAddress != null && emailAddress.isNotEmpty && emailAddress != 'N/A')
+                  _buildClickableInfoRow(
+                    "Email:", 
+                    emailAddress, 
+                    Icons.email,
+                    () => _sendEmail(emailAddress),
+                    Colors.blue,
+                  )
+                else
+                  _buildInfoRow("Email:", 'N/A'),
+                
+                if (doctor['uploadDate'] != null)
+                  _buildInfoRow("Profile Updated:", _formatDate(doctor['uploadDate'])),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDoctorAvatar(Map<String, dynamic> doctor) {
+    final String imageUrl = _getDoctorImageUrl(doctor);
+    final String doctorName = doctor['doctorName'] ?? 'Doctor';
+    final String initials = _getInitials(doctorName);
+
+    return Center(
+      child: CircleAvatar(
+        radius: 40,
+        backgroundColor: Colors.blue[900],
+        backgroundImage: imageUrl.isNotEmpty 
+            ? NetworkImage(imageUrl) as ImageProvider
+            : null,
+        child: imageUrl.isEmpty
+            ? Text(
+                initials,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
+              )
+            : null,
+      ),
+    );
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return "DR";
+    
+    final List<String> nameParts = name.split(' ');
+    if (nameParts.length >= 2) {
+      return '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase();
+    } else if (name.length >= 2) {
+      return name.substring(0, 2).toUpperCase();
+    } else {
+      return name.toUpperCase();
+    }
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Colors.grey[800],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ADD THIS NEW METHOD FOR CLICKABLE ROWS
+  Widget _buildClickableInfoRow(String label, String value, IconData icon, VoidCallback onTap, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: GestureDetector(
+              onTap: onTap,
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: 16,
+                    color: color,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w500,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(String dateString) {
+    try {
+      final DateTime date = DateTime.parse(dateString);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return dateString;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[300],
+      body: SafeArea(child: _buildBody()),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: const Color.fromARGB(255, 4, 84, 88),
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.video_call), label: 'Telemedicine'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Options'),
         ],
       ),
     );
