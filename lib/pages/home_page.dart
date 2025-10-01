@@ -16,7 +16,7 @@ import 'package:medical_app/pages/notifications_page.dart';
 import 'package:medical_app/pages/patients_notes_page.dart';
 import 'package:url_launcher/url_launcher.dart'; // ADD THIS IMPORT
 
-// ------------------ UPDATED DOCTOR CARD WIDGET ------------------
+// ------------------ DOCTOR CARD WIDGET ------------------
 class DoctorCard extends StatelessWidget {
   final String doctorImagePath;
   final String doctorName;
@@ -108,7 +108,7 @@ class DoctorCard extends StatelessWidget {
   }
 }
 
-// ------------------ UPDATED HOMEPAGE ------------------
+// ------------------ HOMEPAGE ------------------
 class HomePage extends StatefulWidget {
   final String userName;
   final String patientID;
@@ -596,7 +596,7 @@ class _HomePageState extends State<HomePage> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => BillingPage()),
+                MaterialPageRoute(builder: (context) => BillingPage(patientID: widget.patientID)),
               );
             },
             child: CategoryCard(
@@ -688,7 +688,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildDoctorsHorizontalList() {
     if (doctors.isEmpty) {
       return Container(
-        height: 200, // Reduced height
+        height: 200, 
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -711,7 +711,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Container(
-      height: 200, // CHANGED: Reduced from 220 to 200 to fix overflow
+      height: 200, 
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15.0),
         child: ListView.builder(
@@ -752,7 +752,7 @@ class _HomePageState extends State<HomePage> {
     return "";
   }
 
-  // ADD THESE HELPER METHODS FOR PHONE AND EMAIL
+  
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
     try {
@@ -909,6 +909,7 @@ class _HomePageState extends State<HomePage> {
               style: TextStyle(
                 color: Colors.grey[800],
                 fontWeight: FontWeight.w500,
+                fontSize: 16,
               ),
             ),
           ),
@@ -917,7 +918,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ADD THIS NEW METHOD FOR CLICKABLE ROWS
+  
   Widget _buildClickableInfoRow(String label, String value, IconData icon, VoidCallback onTap, Color color) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),

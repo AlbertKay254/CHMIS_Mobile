@@ -22,7 +22,7 @@ class _PatientNotesPageState extends State<PatientNotesPage> {
   }
 
   Future<void> fetchAllNotes() async {
-    final url = Uri.parse('http://192.168.1.10:3030/api/notes/${widget.patientID}');
+    final url = Uri.parse('http://197.232.14.151:3030/api/notes/${widget.patientID}');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
